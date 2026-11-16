@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello ExempleController!{% endblock %}
+
+{% block body %}
+<h1>livres</h1>
+{% for books in book %}
+    <p> Livre n° : {{ books.id }} </p>
+    <p> Titre :  {{ books.title }} </p>
+    <p> Auteur :  {{ books.author }} </p>
+    <p> Auteur :  {{ books.author }} </p>
+{% endfor %}
+{% endblock %}
