@@ -9,7 +9,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class ProductController extends AbstractController
 {
     #[Route('/produit/{id}', name: 'app_product')]
-    public function show($id): Response
+    public function show(int $id): Response
     {
         if (filter_var($id, FILTER_VALIDATE_INT)){
             return $this->render('product/product.html.twig', [

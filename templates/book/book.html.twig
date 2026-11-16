@@ -5,9 +5,13 @@
 {% block body %}
 <h1>livres</h1>
 {% for books in book %}
-    <p> Livre n° : {{ books.id }} </p>
+    <h2> Livre n° : {{ books.id }} </h2>
     <p> Titre :  {{ books.title }} </p>
     <p> Auteur :  {{ books.author }} </p>
-    <p> Auteur :  {{ books.author }} </p>
+    <a href="{{ path('app_show', {id: books.id}) }}">
+    Voir le détail
+</a>
 {% endfor %}
+
+
 {% endblock %}

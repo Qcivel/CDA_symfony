@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello ExempleController!{% endblock %}
+
+{% block body %}
+<h1>livres n° {{ show_book.id }}</h1>
+<p>Titre : {{ show_book.title}}</p>
+<p>Auteur: {{ show_book.author}}</p>
+<a href="{{ path('app_book') }}">
+    Les livres
+</a>
+
+
+{% endblock %}
