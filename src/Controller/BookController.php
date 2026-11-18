@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\BookService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -9,29 +10,25 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class BookController extends AbstractController
 {
-    private array $books = [
-        ['id' => 1, 'title' => 'Dune', 'author' => 'Frank Herbert'],
-        ['id' => 2, 'title' => '1984', 'author' => 'George Orwell'],
-        ['id' => 3, 'title' => 'Fondation', 'author' => 'Isaac Asimov'],
-    ];
+    public function __construct(
+        private BookService $bookService
+    ){}
 
-    #[Route('/livres', name: 'app_book')]
-    public function book()
+    #[Route(path:'/book', name: 'app_book')]
+    public function showAllBook(): Response
     {
-        return $this->render('book/book.html.twig',[
-            'book' => $this->books
+        $books = $this->bookService->getBook();
+
+        return $this->render('book/show_all_book.html.twig',[
+            'books' => $books
         ]);
     }
-    #[Route('/livres/{id}', requirements:['id' => '\d+'], name: 'app_show')]
-    public function show(int $id) 
+    #[Route(path:'/book/{id}',requirements: ['id' => '\d+'], name: 'app_book_id')]
+    public function showBookById(int $id)
     {
-        if($id > count($this->books) || $id == null){
-            throw $this->createNotFoundException('Livre introuvable');
-        }else{
-            $show_book = array_find($this->books, fn($value) => $value['id'] === $id);
-            return $this->render('book/show.html.twig', [
-                'show_book' => $show_book
-            ]);
-        }
+        $book = $this->bookService->getBookById($id);
+        return $this->render('book/show_book_by_id.html.twig',[
+            'book' => $book
+        ]);
     }
 }

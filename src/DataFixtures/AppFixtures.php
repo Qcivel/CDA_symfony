@@ -15,24 +15,25 @@ class AppFixtures extends Fixture
         //Création d'un objet Faker
         $faker = Faker\Factory::create('fr_FR');
         
-        $category = [];
+        $categories = [];
         for ($i=0; $i < 20; $i++) { 
             //Créer des objets 
             $category = new Category();
             $category->setName($faker->word());
             //persister l'objet
             $manager->persist($category);
+            $categories[] = $category;
         }
         $users = [];
         for ($i=0; $i < 10 ; $i++) { 
-            $users = new User();
-            $users->setEmail($faker->email());
-            $users->setPassword(password_hash('password', PASSWORD_DEFAULT));
-            $users->setFirstname($faker->firstname());
-            $users->setLastname($faker->lastName());
-
+            $user = new User();
+            $user->setEmail($faker->unique()->email());
+            $user->setPassword(password_hash('password', PASSWORD_DEFAULT));
+            $user->setFirstname($faker->firstname());
+            $user->setLastname($faker->lastName());
             //persister l'objet
-            $manager->persist($users);
+            $manager->persist($user);
+            $users[] = $user;
         }
 
         for ($i=0; $i < 60; $i++) { 
@@ -40,8 +41,11 @@ class AppFixtures extends Fixture
             $book = new Book();
             $book->setTitle($faker->word());
             $book->setResume($faker->words(20, true));
-            $book->setPublishAt(\DateTimeImmutable::createFromMutable($faker->dateTime()));
+            $book->setPublishAt(new \DateTimeImmutable($faker->date('Y-m-d')));
             $book->setAuthor($faker->firstname());
+            for ($j=0; $j < 5 ; $j++) { 
+                $book->addCategory($faker->randomElement($categories));
+            }
             //persister l'objet
             $manager->persist($book);
         }
