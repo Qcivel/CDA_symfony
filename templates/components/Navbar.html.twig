@@ -1,0 +1,51 @@
+{% props %}
+<nav class="border-b border-gray-200 bg-white">
+    <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between px-4 py-3">
+
+        {# Logo / nom du site #}
+        <a href="{{ path('app_home') }}" class="text-xl font-bold text-indigo-600">
+            MonSite
+        </a>
+
+        {# Case à cocher cachée : elle ouvre et ferme le menu sur mobile, sans JavaScript #}
+        <input type="checkbox" id="menu-toggle" class="peer hidden">
+
+        {# Bouton burger, visible seulement sur mobile #}
+        <label for="menu-toggle"
+               class="cursor-pointer rounded-md p-2 text-gray-600 hover:bg-gray-100 md:hidden"
+               aria-label="Ouvrir le menu">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+        </label>
+
+        {# Liens #}
+        <ul class="hidden w-full flex-col gap-1 pt-3 peer-checked:flex
+                   md:flex md:w-auto md:flex-row md:items-center md:gap-6 md:pt-0">
+            <li>
+                <a href="/" class="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-indigo-600
+                                   md:p-0 md:hover:bg-transparent">
+                    Home
+                </a>
+            </li>
+            <li>
+                <a href="/categories" class="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-indigo-600
+                                   md:p-0 md:hover:bg-transparent">
+                    Categories
+                </a>
+            </li>
+            <li>
+                <a href="/user" class="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-indigo-600
+                                   md:p-0 md:hover:bg-transparent">
+                    Utilisateur
+                </a>
+            </li>
+            <li>
+                <a href="/book" class="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-indigo-600
+                                   md:p-0 md:hover:bg-transparent">
+                    Les livres
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>

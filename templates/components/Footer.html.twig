@@ -1,0 +1,30 @@
+<footer class="mt-12 border-t border-gray-200 bg-white">
+    <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-6 md:flex-row">
+
+        {# Nom du site + copyright #}
+        <p class="text-sm text-gray-500">
+            © {{ 'now'|date('Y') }}
+            <span class="font-semibold text-indigo-600">MonSite</span>
+            — Tous droits réservés
+        </p>
+
+        {# Liens #}
+        <ul class="flex flex-wrap items-center gap-6 text-sm">
+            <li>
+                <a href="{{ path('app_home') }}" class="text-gray-600 hover:text-indigo-600">
+                    Accueil
+                </a>
+            </li>
+            <li>
+                <a href="{{ path('app_book') }}" class="text-gray-600 hover:text-indigo-600">
+                    Les livres
+                </a>
+            </li>
+            <li>
+                <a href="{{ path('app_contact') }}" class="text-gray-600 hover:text-indigo-600">
+                    Contact
+                </a>
+            </li>
+        </ul>
+    </div>
+</footer>

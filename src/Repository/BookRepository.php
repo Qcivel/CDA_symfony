@@ -40,4 +40,33 @@ class BookRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+
+    public function findByTitle(string $title): array
+    {
+        return $this->createQueryBuilder('b')
+            ->where('b.title LIKE :title')
+            ->setParameter('title', '%' . $title . '%')
+            ->orderBy('b.title','ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findByDate(\DateTimeImmutable $date): array
+    {
+        return $this->createQueryBuilder('b')
+            ->where('b.publishAt <= :date')
+            ->setParameter('date',  $date )
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findByCategory(string $category): array
+    {
+        return $this->createQueryBuilder('b')
+            ->innerJoin('b.categories' , 'c')
+            ->where('c.name = :name')
+            ->setParameter('name',$category)
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -6,7 +6,7 @@ use App\Service\BookService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-
+use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
 
 class BookController extends AbstractController
 {
@@ -31,4 +31,33 @@ class BookController extends AbstractController
             'book' => $book
         ]);
     }
+    #[Route(path:'/books/search/{title}', name: 'app_book_search')]
+    public function showBooksbyTitle(string $title) : Response
+    {
+        $book = $this->bookService->getBooksByTitle($title);
+
+        return $this->render('book/show_all_book.html.twig',[
+            "books" => $book 
+        ]);
+    }
+    #[Route(path:'/books/recent/{date}', name:'app_book_recent')]
+    public function showBookByDate(string $date) : Response
+    {
+        $book = $this->bookService->getBooksByDate($date);
+        return $this->render('book/show_all_book.html.twig',[
+            "books" => $book
+        ]);
+    }
+    #[Route(path:'/books/category/{category}', name:'app_book_category')]
+    public function showBooksByCategory(string $category) : Response
+    {
+        $category = $this->bookService->getBooksByCategory($category);
+        return $this->render('book/show_all_book.html.twig',[
+            "books" => $category
+        ]);
+    }
+
+
+
+
 }

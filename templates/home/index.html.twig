@@ -3,6 +3,10 @@
 {% block title %}Hello ExempleController!{% endblock %}
 
 {% block body %}
-<h1>Titre</h1>
-<p>Paragraphe</p>
+{% for formation in formations %}
+    <twig:FormationCard 
+    :title="formation.title"
+    :description="formation.description"
+    />
+{% endfor %}
 {% endblock %}

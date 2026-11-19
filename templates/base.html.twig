@@ -18,7 +18,13 @@
         <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
         {% endif %}
     </head>
-    <body>
+    <body class="flex min-h-screen flex-col">
+    <twig:Navbar/>
+
+    <main class="flex-1">
         {% block body %}{% endblock %}
-    </body>
+    </main>
+
+    <twig:Footer/>
+</body>
 </html>
