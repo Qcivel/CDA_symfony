@@ -66,6 +66,7 @@ class BookRepository extends ServiceEntityRepository
             ->innerJoin('b.categories' , 'c')
             ->where('c.name = :name')
             ->setParameter('name',$category)
+            ->orderBy('b.id')
             ->getQuery()
             ->getResult();
     }

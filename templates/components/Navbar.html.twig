@@ -28,12 +28,43 @@
                     Home
                 </a>
             </li>
-            <li>
-                <a href="/categories" class="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-indigo-600
-                                   md:p-0 md:hover:bg-transparent">
-                    Categories
+            {# Catégories avec sous-menu #}
+            {% if app.user %}
+            <li class="group relative">
+                <a href="{{ path('app_categories') }}"
+                   class="flex items-center gap-1 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-indigo-600
+                          md:p-0 md:hover:bg-transparent">
+                    Catégories
+                    {# Petite flèche, visible seulement sur ordinateur #}
+                    <svg class="hidden h-4 w-4 transition-transform md:block md:group-hover:rotate-180"
+                         fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                    </svg>
                 </a>
+
+                {# Le sous-menu #}
+                <div class="md:absolute md:left-0 md:top-full md:z-20 md:hidden md:pt-3
+                            md:group-hover:block md:group-focus-within:block">
+                    <ul class="flex flex-col pl-4
+                               md:min-w-52 md:rounded-md md:border md:border-gray-200 md:bg-white md:py-2 md:pl-0 md:shadow-lg">
+                        <li>
+                            <a href="{{ path('app_categories') }}"
+                               class="block rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-indigo-600
+                                      md:rounded-none">
+                                Toutes les catégories
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ path('app_category_new') }}"
+                               class="block rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-indigo-600
+                                      md:rounded-none">
+                                Ajouter une catégorie
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
+            
             <li>
                 <a href="/user" class="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-indigo-600
                                    md:p-0 md:hover:bg-transparent">
@@ -46,6 +77,27 @@
                     Les livres
                 </a>
             </li>
+            <li>
+                <a href="/logout" class="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-indigo-600
+                                   md:p-0 md:hover:bg-transparent">
+                    Déconnexion
+                </a>
+            </li>
+            {%endif%}
+            {% if not app.user %}
+            <li>
+                <a href="/login" class="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-indigo-600
+                                   md:p-0 md:hover:bg-transparent">
+                    Se connecter
+                </a>
+            </li>
+            <li>
+                <a href="/register" class="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-indigo-600
+                                   md:p-0 md:hover:bg-transparent">
+                    Créer un compte
+                </a>
+            </li>
+            {%endif%}
         </ul>
     </div>
 </nav>

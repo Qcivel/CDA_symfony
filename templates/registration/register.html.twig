@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer un compte{% endblock %}
+
+{% block body %}
+    <div class="mx-auto max-w-md px-4 py-10">
+        <h1 class="mb-6 text-2xl font-bold">Créer un compte</h1>
+
+        {# Erreurs globales du formulaire #}
+        {{ form_errors(registrationForm) }}
+
+        {{ form_start(registrationForm, {attr: {class: 'flex flex-col gap-4'}}) }}
+
+            {{ form_row(registrationForm.firstname) }}
+            {{ form_row(registrationForm.lastname) }}
+            {{ form_row(registrationForm.email) }}
+            {{ form_row(registrationForm.plainPassword) }}
+            {{ form_row(registrationForm.agreeTerms) }}
+
+            <button type="submit" class="btn">Créer mon compte</button>
+
+        {{ form_end(registrationForm) }}
+    </div>
+{% endblock %}

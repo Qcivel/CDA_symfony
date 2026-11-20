@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Service\BookService;
+use BookToBookWrapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -57,6 +58,17 @@ class BookController extends AbstractController
         ]);
     }
 
+    #[Route(path:'/books/dto', name:'app_book_dto')]
+    public function showBookListDTO(): Response
+    {
+        $book = $this->bookService->getBook();
+
+        if($book) BookToBookWrapper::wrapBookToBookListDTO($book);
+
+        return $this->render('book/show_book_dto.html.twig',[
+            'books' => $books ?? null
+        ]);
+    }
 
 
 

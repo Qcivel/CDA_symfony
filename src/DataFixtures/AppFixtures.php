@@ -5,7 +5,6 @@ namespace App\DataFixtures;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use App\Entity\Category;
-use App\Entity\User;
 use App\Entity\Book;
 use Faker;
 class AppFixtures extends Fixture
@@ -23,17 +22,6 @@ class AppFixtures extends Fixture
             //persister l'objet
             $manager->persist($category);
             $categories[] = $category;
-        }
-        $users = [];
-        for ($i=0; $i < 10 ; $i++) { 
-            $user = new User();
-            $user->setEmail($faker->unique()->email());
-            $user->setPassword(password_hash('password', PASSWORD_DEFAULT));
-            $user->setFirstname($faker->firstname());
-            $user->setLastname($faker->lastName());
-            //persister l'objet
-            $manager->persist($user);
-            $users[] = $user;
         }
 
         for ($i=0; $i < 60; $i++) { 
