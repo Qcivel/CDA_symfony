@@ -2,14 +2,16 @@
 
 namespace App\Service;
 
-use App\DTO\BookListDTO;
+
 use App\Entity\Book;
 use App\Repository\BookRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 class BookService
 {
     public function __construct(
-        private BookRepository $bookRepository
+        private BookRepository $bookRepository,
+        private EntityManagerInterface $em
     ){}
     
     public function getBook(): array
@@ -36,5 +38,12 @@ class BookService
     public function getBooksByCategory(string $category) : array
     {
         return $this->bookRepository->findByCategory($category);
+    }
+
+    public function saveBook(Book $book): void
+    {
+        $this->em->persist($book);
+        $this->em->flush();
+
     }
 }

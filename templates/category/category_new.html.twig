@@ -1,7 +1,32 @@
 {% extends 'base.html.twig' %}
-{% block title %}Category{% endblock %}
+
+{% block title %}Ajouter une catégorie{% endblock %}
+
 {% block body %}
- {{ form(form) }}
-<twig:Toast
-/>
+<section class="mx-auto max-w-xl px-4 py-12">
+    <a href="{{ path('app_categories') }}" class="btn btn-ghost btn-sm mb-6">← Retour aux catégories</a>
+
+    <twig:Toast/>
+
+    <div class="card border border-base-300 bg-base-100 shadow-sm">
+        <div class="card-body gap-6">
+            <h1 class="card-title text-2xl">Ajouter une catégorie</h1>
+
+            {{ form_start(form, {attr: {class: 'flex flex-col gap-4'}}) }}
+                {{ form_row(form.name, {
+                    label: 'Nom de la catégorie',
+                    row_attr: {class: 'flex flex-col gap-2'},
+                    label_attr: {class: 'text-sm font-medium'},
+                    attr: {class: 'input w-full', placeholder: 'Ex : Roman'}
+                }) }}
+
+                {{ form_row(form.save, {
+                    label: 'Ajouter',
+                    row_attr: {class: 'flex justify-end'},
+                    attr: {class: 'btn btn-primary'}
+                }) }}
+            {{ form_end(form) }}
+        </div>
+    </div>
+</section>
 {% endblock %}

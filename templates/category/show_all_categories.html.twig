@@ -1,19 +1,46 @@
-{% extends "base.html.twig" %}
-{% block title %}
-Liste des categories
-{% endblock %}
+{% extends 'base.html.twig' %}
+
+{% block title %}Catégories{% endblock %}
+
 {% block body %}
-<section>
+<section class="mx-auto max-w-6xl px-4 py-12">
+
+    {# En-tête : titre + bouton d'ajout #}
+    <header class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight">Catégories</h1>
+            <p class="mt-1 text-base-content/60">
+                {{ categories|length }} catégorie{{ categories|length > 1 ? 's' }}
+            </p>
+        </div>
+
+        {% if is_granted('ROLE_ADMIN') %}
+            <a href="{{ path('app_category_new') }}" class="btn btn-primary">+ Ajouter une catégorie</a>
+        {% endif %}
+    </header>
+
+    <twig:Toast/>
+
     {% if categories %}
-    <h1>Liste des categories</h1>
-        {# boucler sur la liste des categories #}
-        {% for category in categories %}
-            <twig:InfoCard
-                name="{{ category.name }}"
-            />
-        {% endfor %}
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {% for category in categories %}
+                <div class="card border border-base-300 bg-base-100 shadow-sm transition hover:shadow-md">
+                    <div class="card-body flex-row items-center justify-between gap-4">
+                        <twig:InfoCard name="{{ category.name }}"/>
+
+                        {% if is_granted('ROLE_USER') %}
+                            <a href="{{ path('app_categories_edit', {id: category.id}) }}"
+                               class="btn btn-ghost btn-sm">Modifier</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
     {% else %}
-    <h2>La liste est vide</h2>
+        <div class="rounded-box border border-dashed border-base-300 py-16 text-center">
+            <h2 class="text-xl font-semibold">La liste est vide</h2>
+            <p class="mt-2 text-base-content/60">Aucune catégorie pour le moment.</p>
+        </div>
     {% endif %}
-</section>  
+</section>
 {% endblock %}

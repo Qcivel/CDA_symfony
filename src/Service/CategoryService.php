@@ -5,7 +5,6 @@ namespace App\Service;
 use App\Entity\Category;
 use App\Repository\CategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
-
 class CategoryService
 {
     public function __construct(
@@ -29,5 +28,12 @@ class CategoryService
         $this->em->flush();
 
         return "La categorie a été ajouté ";
+    }
+
+    public function editCategory(): string 
+    {
+        $this->em->flush();
+
+        return "La categorie a été modifié ";
     }
 }

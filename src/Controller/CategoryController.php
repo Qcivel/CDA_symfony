@@ -30,7 +30,7 @@ class CategoryController extends AbstractController
     }
 
     #[Route(path:'/category/new', name:'app_category_new', methods:["GET", "POST"])]
-    #[IsGranted('ROLE_ADMIN', message:'Vous n\'est pas autorisé')]
+    #[IsGranted('ROLE_USER', message:'Vous n\'est pas autorisé')]
     public function new(Request $request):Response 
     {
         $category = new Category();
@@ -52,4 +52,31 @@ class CategoryController extends AbstractController
             'form'=> $form
         ]);
     }
+
+    #[Route(path:'/categories/{id}/edit', name:'app_categories_edit', methods:["GET", "POST"])]
+    #[IsGranted('ROLE_USER', message:'Vous n\'est pas autorisé')]
+    public function edit(Request $request, int $id):Response
+    {
+        $category = $this->categoryService->getCategoryById($id);
+
+        if (!$category){
+            throw $this->createNotFoundException('La catégorie n\'existe pas');
+        }
+
+        $form = $this->createForm(CategoryType::class, $category);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()){
+            $msg = $this->categoryService->editCategory($category);
+            $this->addFlash('notice', $msg);
+
+            return $this->redirectToRoute('app_category_new');
+        }
+
+        return $this->render('category/category_new.html.twig', [
+            'form'=> $form
+        ]);
+    }
+
 }

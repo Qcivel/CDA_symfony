@@ -2,13 +2,16 @@
 
 namespace App\Controller;
 
+use App\Form\BookType;
 use App\Service\BookService;
 use BookToBookWrapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
+use App\Entity\Book;
 
 class BookController extends AbstractController
 {
@@ -64,19 +67,43 @@ class BookController extends AbstractController
         ]);
     }
 
-    #[Route(path:'/books/dto', name:'app_book_dto')]
+    // #[Route(path:'/books/dto', name:'app_book_dto')]
+    // #[IsGranted('ROLE_USER', message:'Vous n\'êtes pas autorisé  à accéder à la page')]
+    // public function showBookListDTO(): Response
+    // {
+    //     $book = $this->bookService->getBook();
+
+    //     if($book) BookToBookWrapper::wrapBookToBookListDTO($book);
+
+    //     return $this->render('book/show_book_dto.html.twig',[
+    //         'books' => $books ?? null
+    //     ]);
+    // }
+
+    #[Route(path:'/books/new', name:'app_book_new', methods:["GET", "POST"])]
     #[IsGranted('ROLE_USER', message:'Vous n\'êtes pas autorisé  à accéder à la page')]
-    public function showBookListDTO(): Response
+    public function new(Request $request):Response
     {
-        $book = $this->bookService->getBook();
+        $book = new Book();
 
-        if($book) BookToBookWrapper::wrapBookToBookListDTO($book);
+        $form = $this->createForm(BookType::class,$book);
 
-        return $this->render('book/show_book_dto.html.twig',[
-            'books' => $books ?? null
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted()) {
+            
+            $msg = $this->bookService->saveBook($book);
+
+            $this->addFlash('notice', $msg);
+
+            return $this->redirectToRoute('app_book_new');
+        }
+
+        return $this->render('book/book_new.html.twig', [
+            'form'=> $form
         ]);
-    }
 
+    }
 
 
 }
