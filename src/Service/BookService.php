@@ -46,4 +46,11 @@ class BookService
         $this->em->flush();
 
     }
+
+     public function editBook(): string 
+    {
+        $this->em->flush();
+
+        return "Le livre a été modifié ";
+    }
 }

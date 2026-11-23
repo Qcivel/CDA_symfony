@@ -13,6 +13,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
 use App\Entity\Book;
 
+
 class BookController extends AbstractController
 {
     public function __construct(
@@ -80,7 +81,7 @@ class BookController extends AbstractController
     //     ]);
     // }
 
-    #[Route(path:'/books/new', name:'app_book_new', methods:["GET", "POST"])]
+    #[Route(path:'/books/new', name:'app_book_new')]
     #[IsGranted('ROLE_USER', message:'Vous n\'êtes pas autorisé  à accéder à la page')]
     public function new(Request $request):Response
     {
@@ -92,8 +93,35 @@ class BookController extends AbstractController
 
         if ($form->isSubmitted()) {
             
-            $msg = $this->bookService->saveBook($book);
+            $this->bookService->saveBook($book);
 
+            $this->addFlash('notice', 'Le livre ' . $book->getTitle() . ' a été ajouté');
+
+            return $this->redirectToRoute('app_book_new');
+        }
+
+        return $this->render('book/book_form.html.twig', [
+            'form'=> $form
+        ]);
+
+    }
+
+    #[Route(path:'/books/{id}/edit', name:'app_book_edit', methods:["GET", "POST"])]
+    #[IsGranted('ROLE_USER', message:'Vous n\'est pas autorisé')]
+    public function edit(Request $request, int $id):Response
+    {
+        $book = $this->bookService->getBookById($id);
+
+        if (!$book){
+            throw $this->createNotFoundException('La catégorie n\'existe pas');
+        }
+
+        $form = $this->createForm(BookType::class, $book);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()){
+            $msg = $this->bookService->editBook($book);
             $this->addFlash('notice', $msg);
 
             return $this->redirectToRoute('app_book_new');
@@ -102,8 +130,8 @@ class BookController extends AbstractController
         return $this->render('book/book_new.html.twig', [
             'form'=> $form
         ]);
-
     }
+
 
 
 }

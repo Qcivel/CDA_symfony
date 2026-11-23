@@ -1,0 +1,91 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ajouter un livre{% endblock %}
+
+{% block body %}
+<section class="mx-auto max-w-2xl px-4 py-10">
+
+    <a href="{{ path('app_book') }}" class="link link-hover text-sm text-base-content/70">
+        ← Retour aux livres
+    </a>
+
+    <h1 class="mt-4 text-3xl font-bold">Ajouter un livre</h1>
+    <p class="mt-1 text-base-content/70">Renseigne les informations du livre puis valide.</p>
+
+    <div class="mt-4">
+        <twig:Toast />
+    </div>
+
+    <div class="card mt-6 border border-base-300 bg-base-100 shadow-sm">
+        <div class="card-body">
+
+            {{ form_start(form, {attr: {class: 'flex flex-col gap-5'}}) }}
+
+            {# Titre #}
+            {{ form_row(form.title, {
+            label: 'Titre',
+            row_attr: {class: 'flex flex-col gap-1'},
+            label_attr: {class: 'font-medium'},
+            attr: {class: 'input w-full', placeholder: 'Ex : Le Petit Prince'}
+            }) }}
+
+            {# Auteur + date côte à côte (l'un sous l'autre sur mobile) #}
+            <div class="grid gap-5 sm:grid-cols-2">
+                {{ form_row(form.author, {
+                label: 'Auteur',
+                row_attr: {class: 'flex flex-col gap-1'},
+                label_attr: {class: 'font-medium'},
+                attr: {class: 'input w-full', placeholder: 'Ex : Antoine de Saint-Exupéry'}
+                }) }}
+
+                {{ form_row(form.publishAt, {
+                label: 'Date de publication',
+                row_attr: {class: 'flex flex-col gap-1'},
+                label_attr: {class: 'font-medium'},
+                attr: {class: 'input w-full'}
+                }) }}
+            </div>
+
+            {# Résumé #}
+            {{ form_row(form.resume, {
+            label: 'Résumé',
+            row_attr: {class: 'flex flex-col gap-1'},
+            label_attr: {class: 'font-medium'},
+            attr: {class: 'textarea w-full', rows: 5, placeholder: 'De quoi parle le livre ?'}
+            }) }}
+
+            {# Catégories #}
+            <fieldset class="flex flex-col gap-2">
+                <legend class="mb-2 font-medium">Catégories</legend>
+
+                <div class="flex flex-wrap gap-2">
+
+                    {{ form_row(form.categories, {
+                    label: 'Catégories',
+                    row_attr: {class: 'flex flex-col gap-1'},
+                    label_attr: {class: 'font-medium'},
+                    help: 'Maintiens Ctrl (ou Cmd sur Mac) pour en sélectionner plusieurs.',
+                    help_attr: {class: 'text-sm text-base-content/60'},
+                    attr: {
+                    class: 'w-full rounded-md border border-base-300 bg-base-100 p-2 focus:outline-primary
+                    [&>option]:rounded [&>option]:px-2 [&>option]:py-1',
+                    size: 6
+                    }
+                    }) }}
+                </div>
+
+                <div class="text-sm text-error">{{ form_errors(form.categories) }}</div>
+            </fieldset>
+
+            {# Boutons #}
+            <div class="flex justify-end gap-2 border-t border-base-300 pt-5">
+                <a href="{{ path('app_book') }}" class="btn btn-ghost">Annuler</a>
+                {{ form_widget(form.save, {label: 'Ajouter le livre', attr: {class: 'btn btn-primary'}}) }}
+            </div>
+
+            {{ form_end(form) }}
+
+        </div>
+    </div>
+</section>
+{% endblock %}
