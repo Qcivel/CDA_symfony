@@ -66,13 +66,31 @@
                     </ul>
                 </div>
             </li>
+            {% if is_granted('ROLE_USER') %}
+            <li>
+                <a href="/profil" class="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-indigo-600
+                                   md:p-0 md:hover:bg-transparent">
+                    Mon compte
+                </a>
+            </li>
+            {% endif %}
             
+            {% if is_granted('ROLE_ADMIN') %}
             <li>
                 <a href="/user" class="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-indigo-600
                                    md:p-0 md:hover:bg-transparent">
-                    Utilisateur
+                    Les utilisateurs
                 </a>
             </li>
+            {% endif %}
+            {% if is_granted('ROLE_ADMIN') %}
+            <li>
+                <a href="/user" class="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-indigo-600
+                                   md:p-0 md:hover:bg-transparent">
+                    mon 
+                </a>
+            </li>
+            {% endif %}
             <li>
                 <a href="/book" class="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-indigo-600
                                    md:p-0 md:hover:bg-transparent">

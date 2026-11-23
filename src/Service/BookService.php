@@ -53,4 +53,12 @@ class BookService
 
         return "Le livre a été modifié ";
     }
+
+    public function deleteBook(Book $book): void
+    {
+        
+            $this->em->remove($book);
+            $this->em->flush();
+        
+    }
 }

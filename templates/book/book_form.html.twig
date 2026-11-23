@@ -55,27 +55,22 @@
             }) }}
 
             {# Catégories #}
-            <fieldset class="flex flex-col gap-2">
-                <legend class="mb-2 font-medium">Catégories</legend>
 
-                <div class="flex flex-wrap gap-2">
+            {{ form_row(form.categories, {
+            label: 'Catégories',
+            row_attr: {class: 'flex flex-col gap-1'},
+            label_attr: {class: 'font-medium'},
+            help: 'Maintiens Ctrl (ou Cmd sur Mac) pour en sélectionner plusieurs.',
+            help_attr: {class: 'text-sm text-base-content/60'},
+            attr: {
+            class: 'w-full rounded-md border border-base-300 bg-base-100 p-2 focus:outline-primary
+            [&>option]:rounded [&>option]:px-2 [&>option]:py-1',
+            size: 6
+            }
+            }) }}
 
-                    {{ form_row(form.categories, {
-                    label: 'Catégories',
-                    row_attr: {class: 'flex flex-col gap-1'},
-                    label_attr: {class: 'font-medium'},
-                    help: 'Maintiens Ctrl (ou Cmd sur Mac) pour en sélectionner plusieurs.',
-                    help_attr: {class: 'text-sm text-base-content/60'},
-                    attr: {
-                    class: 'w-full rounded-md border border-base-300 bg-base-100 p-2 focus:outline-primary
-                    [&>option]:rounded [&>option]:px-2 [&>option]:py-1',
-                    size: 6
-                    }
-                    }) }}
-                </div>
 
-                <div class="text-sm text-error">{{ form_errors(form.categories) }}</div>
-            </fieldset>
+
 
             {# Boutons #}
             <div class="flex justify-end gap-2 border-t border-base-300 pt-5">

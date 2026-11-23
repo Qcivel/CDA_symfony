@@ -7,12 +7,13 @@
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {# Fil d'Ariane / retour #}
+        {% if is_granted('ROLE_ADMIN') %}
         <a href="{{ path('app_users') }}"
             class="group inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-blue-600 transition mb-8">
             <span class="transition-transform group-hover:-translate-x-0.5">←</span>
             Retour à la liste
         </a>
-
+        {% endif %}
         {% if user %}
         <article class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
 
@@ -64,12 +65,18 @@
                 </div>
 
                 {# Actions #}
+                {% if is_granted('ROLE_ADMIN') %}
                 <div class="mt-6 flex justify-end">
                     <a href="{{ path('app_users') }}"
                         class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white">
                         Retour à la liste
                     </a>
                 </div>
+                {% endif %}
+                {% if is_granted('ROLE_USER') %}
+                    <a href="{{ path('app_user_edit', {id: user.id}) }}"
+                    class="btn btn-ghost btn-sm">Modifier</a>
+                {% endif %}
             </div>
         </article>
         {% else %}

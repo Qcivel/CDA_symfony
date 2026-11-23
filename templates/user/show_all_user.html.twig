@@ -50,11 +50,12 @@
                                 </div>
                             </dl>
 
-                            <a href="{{ path('app_user', {id: user.id}) }}"
+                            <a href="{{ path('app_user_id', {id: user.id}) }}"
                                class="mt-auto inline-flex items-center justify-center gap-1 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white">
                                 Voir le profil
                                 <span class="transition-transform group-hover:translate-x-0.5">→</span>
                             </a>
+                            
                         </article>
                     {% endfor %}
                 </div>

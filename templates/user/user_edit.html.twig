@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+{% block title %}Modifier son profile{% endblock %}
+{% block body %}
+<h1>Modifier le prénom</h1>
+{{ form_start(form) }}
+{{ form_label(form.firstname) }}
+<div>{{ form_widget(form.firstname) }}</div>
+{{ form_errors(form.firstname) }}
+{{ form_label(form.lastname) }}
+<div>{{ form_widget(form.lastname) }}</div>
+{{ form_errors(form.lastname) }}
+
+{{ form_rest(form) }}
+{{ form_end(form) }}
+<twig:Toast/>
+{% endblock %}
