@@ -1,0 +1,97 @@
+{% extends 'cheatsheet/layout.html.twig' %}
+
+{% block title %}CheatSheet : paramètres de requête{% endblock %}
+
+{% block sheet %}
+{% set steps = {
+    choisir: 'Choisir : chemin ou query string',
+    attribut: 'Lire un paramètre avec MapQueryParameter',
+    formulaire: 'Écrire le formulaire GET',
+    chemin: 'Paramètre de chemin et conversions',
+} %}
+
+<h1 class="text-3xl font-bold mb-6">Paramètres de requête</h1>
+
+<twig:CheatSteps title="Pour récupérer une valeur de l'URL :" :steps="steps" />
+
+<twig:CheatStep :steps="steps" step="choisir">
+    <div class="overflow-x-auto rounded-box border border-base-300">
+        <table class="table">
+            <thead><tr><th></th><th>Paramètre de chemin</th><th>Paramètre de query string</th></tr></thead>
+            <tbody>
+                <tr><th>URL</th><td><code>/user/12</code></td><td><code>/books/search?title=sym</code></td></tr>
+                <tr><th>Route</th><td><code>#[Route('/user/{id}')]</code></td><td><code>#[Route('/books/search')]</code></td></tr>
+                <tr><th>Argument</th><td><code>int $id</code></td><td><code>#[MapQueryParameter] string $title</code></td></tr>
+                <tr><th>Venant d'un formulaire GET</th><td>Impossible</td><td>Oui (<code>name="title"</code> du champ)</td></tr>
+                <tr><th>Usage</th><td>Identifier une ressource</td><td>Recherche, filtres, tri</td></tr>
+            </tbody>
+        </table>
+    </div>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="attribut">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
+
+#[Route('/books/search', name: 'app_book_search')]
+public function search(#[MapQueryParameter] string $title = ''): Response
+{
+    // /books/search?title=sym  →  $title = 'sym'
+}</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li>Lit <code>?title=...</code> dans l'URL et le place dans l'argument. Pas besoin de <code>Request</code>.</li>
+        <li><strong>Sans valeur par défaut</strong> (<code>string $title</code>) : le paramètre est obligatoire, s'il manque la page répond 404.</li>
+        <li><strong>Avec valeur par défaut</strong> (<code>= ''</code> ou <code>?string $title = null</code>) : facultatif.</li>
+        <li>Le <strong>nom de l'argument</strong> doit être le nom du paramètre dans l'URL. Pour un nom différent : <code>#[MapQueryParameter('book_title')] string $title</code>.</li>
+        <li>Le type est contrôlé et converti : <code>int</code>, <code>float</code>, <code>bool</code>, <code>string</code>, <code>array</code>, enum.</li>
+        <li>Valeur invalide pour le type (<code>?page=abc</code> pour un <code>int</code>) : réponse 404.</li>
+        <li>Un tableau (<code>array $cats</code>) demande <code>?cats[]=a&amp;cats[]=b</code> : le champ doit s'appeler <code>cats[]</code>.</li>
+    </ul>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="formulaire">
+{% verbatim %}
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>&lt;form action="{{ path('app_book_search') }}" method="get"&gt;
+    &lt;input type="text" name="title"&gt;     {# name = nom du paramètre #}
+    &lt;button type="submit"&gt;Chercher&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li><code>name="title"</code> du champ = nom de l'argument du contrôleur. Un <code>name</code> différent (<code>book_title</code>) est <strong>ignoré sans erreur</strong> si l'argument a une valeur par défaut, et on obtient toute la liste.</li>
+        <li><code>path('app_book_search')</code> sans paramètre : ne fonctionne que si la route n'a pas de <code>{title}</code> dans son chemin.</li>
+        <li>Tester dans le navigateur : regarder l'URL après l'envoi (<code>?title=...</code>).</li>
+    </ul>
+{% endverbatim %}
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="chemin">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>#[Route('/user/{id}', name: 'app_user_show', requirements: ['id' =&gt; '\d+'])]
+public function show(int $id): Response { ... }
+
+// Date convertie en objet depuis le chemin
+use Symfony\Component\HttpKernel\Attribute\MapDateTime;
+
+#[Route('/books/after/{date}')]
+public function after(#[MapDateTime(format: 'Y-m-d')] \DateTimeImmutable $date): Response { ... }</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li><code>requirements</code> est une <strong>expression régulière</strong> : <code>'\d+'</code> = chiffres uniquement. <code>'string'</code> n'accepterait que le mot « string ».</li>
+        <li>Format de date : celui de PHP, <code>Y-m-d</code> (pas <code>yyyy-mm-dd</code>). <code>Y</code> année, <code>m</code> mois, <code>d</code> jour.</li>
+        <li>Pour une date reçue par query string : <code>#[MapQueryParameter] string $date</code> puis <code>\DateTimeImmutable::createFromFormat('Y-m-d', $date)</code>. Cette méthode renvoie <code>false</code> si le format est faux.</li>
+    </ul>
+</twig:CheatStep>
+
+<section class="mb-8">
+    <h2 class="text-xl font-bold mb-2">Pour aller plus loin</h2>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>#[MapQueryString] SearchDto $search          // plusieurs paramètres GET dans un objet
+#[MapRequestPayload] ProductDto $product     // corps de la requête (JSON ou formulaire) dans un objet</code></pre>
+    <p class="mt-2">Ces deux attributs utilisent le Serializer et le Validator (<code>composer require symfony/serializer-pack symfony/validator</code> s'ils manquent).</p>
+</section>
+
+<section class="mb-8">
+    <h2 class="text-xl font-bold mb-2">Erreurs fréquentes</h2>
+    <ul class="list-disc pl-6 space-y-1">
+        <li><code>Some mandatory parameters are missing ("title")</code> : la route contient <code>{title}</code> dans son chemin mais <code>path()</code> est appelé sans valeur. Retirer <code>{title}</code> pour un paramètre de query string.</li>
+        <li>La recherche renvoie tous les résultats : nom du champ du formulaire différent du nom du paramètre.</li>
+        <li><code>Variable "books" does not exist</code> : le contrôleur n'envoie pas la clé attendue au template.</li>
+        <li>404 sur la recherche : paramètre obligatoire absent, ou valeur du mauvais type.</li>
+    </ul>
+</section>
+{% endblock %}

@@ -1,0 +1,186 @@
+{% extends 'cheatsheet/layout.html.twig' %}
+
+{% block title %}CheatSheet : authentification{% endblock %}
+
+{% block sheet %}
+{% set steps = {
+    user: "Créer l'entité User",
+    migration: 'Migrer la base de données',
+    inscription: "Créer le formulaire d'inscription",
+    login: 'Créer le login et le logout',
+    templatelogin: 'Adapter le template de login',
+    header: 'Afficher connexion / déconnexion dans le header',
+    proteger: 'Protéger des pages',
+    roles: 'Gérer les rôles',
+    tester: 'Tester le parcours complet',
+} %}
+
+<h1 class="text-3xl font-bold mb-6">Authentification</h1>
+
+<twig:CheatSteps title="Pour mettre en place l'authentification :" :steps="steps" />
+
+<twig:CheatStep :steps="steps" step="user">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>composer require symfony/security-bundle
+symfony console make:user User</code></pre>
+    <p class="mt-2 mb-2">Réponses à donner : classe <code>User</code>, stockée en base (<code>yes</code>), identifiant <code>email</code>, mots de passe hashés (<code>yes</code>).</p>
+    <ul class="list-disc pl-6 space-y-1">
+        <li>Crée l'entité <code>User</code> (avec <code>email</code>, <code>roles</code>, <code>password</code>), son repository, et complète <code>config/packages/security.yaml</code> (provider et hash).</li>
+        <li>La classe implémente <code>UserInterface</code> et <code>PasswordAuthenticatedUserInterface</code> : c'est ce que Security exige.</li>
+        <li><strong>Une entité <code>User</code> existe déjà ?</strong> <code>make:user</code> ne peut pas la créer. Mettre de côté <code>User.php</code> et <code>UserRepository.php</code>, <strong>et</strong> les classes qui en dépendent (<code>UserService</code>, <code>UserController</code>), sinon l'erreur <code>Cannot autowire ... UserRepository not found</code> bloque toute commande. Les remettre après.</li>
+    </ul>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto mt-2"><code>symfony console make:entity User     # ajouter des champs : firstname, lastname</code></pre>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="migration">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>symfony console make:migration
+symfony console doctrine:migrations:migrate</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li>Relire la migration : un <code>ALTER TABLE user ADD roles JSON NOT NULL</code> est attendu, pas un <code>DROP TABLE</code>.</li>
+        <li><code>roles</code> est obligatoire : s'il y a déjà des lignes, la migration peut échouer. Vider la table ou recharger les fixtures.</li>
+        <li>Les utilisateurs des fixtures ont un mot de passe <strong>en clair</strong> : ils ne peuvent pas se connecter. Retirer la création des <code>User</code> des fixtures (et le <code>setUser()</code> des livres), puis <code>d:f:l</code>. Les comptes se créent par le formulaire d'inscription.</li>
+    </ul>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="inscription">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>symfony console make:registration-form</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li>Génère <code>RegistrationController</code> (route <code>/register</code>, <code>app_register</code>), <code>RegistrationFormType</code> et <code>templates/registration/register.html.twig</code>.</li>
+        <li>Le contrôleur hashe le mot de passe avec <code>UserPasswordHasherInterface</code> avant le <code>persist()</code>.</li>
+        <li>Refuser la vérification d'email au début (elle demande le Mailer).</li>
+        <li>Ajouter les champs manquants (<code>firstname</code>, <code>lastname</code>) dans <code>RegistrationFormType</code>, sinon une colonne obligatoire reste vide.</li>
+        <li><code>#[UniqueEntity('email')]</code> sur <code>User</code> : message propre si l'email existe déjà.</li>
+        <li><code>#[Assert\NotBlank]</code> sur les champs obligatoires de l'entité.</li>
+    </ul>
+    <p class="mt-2">Le design du formulaire : cheatsheet « Formulaires ».</p>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="login">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>symfony console make:security:form-login</code></pre>
+    <p class="mt-2 mb-2">Réponses : <code>SecurityController</code>, générer le template (<code>yes</code>), URL de déconnexion (<code>yes</code>). Crée :</p>
+    <ul class="list-disc pl-6 space-y-1">
+        <li><code>SecurityController</code> : routes <code>/login</code> (<code>app_login</code>) et <code>/logout</code> (<code>app_logout</code>).</li>
+        <li><code>templates/security/login.html.twig</code>.</li>
+        <li>Et complète le firewall dans <code>security.yaml</code> :</li>
+    </ul>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto mt-2"><code>firewalls:
+    main:
+        lazy: true
+        provider: app_user_provider
+        form_login:
+            login_path: app_login
+            check_path: app_login
+            enable_csrf: true
+        logout:
+            path: app_logout</code></pre>
+    <p class="mt-2">Le formulaire est envoyé en POST sur la <strong>même route</strong> <code>/login</code> : Security intercepte la requête, le contrôleur ne la traite pas. La méthode <code>logout()</code> reste vide, Security intercepte aussi la route.</p>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="templatelogin">
+{% verbatim %}
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>{% if error %}
+    &lt;twig:Alert type="error" :message="error.messageKey|trans(error.messageData, 'security')" /&gt;
+{% endif %}
+
+&lt;form method="post"&gt;
+    &lt;input type="email" name="_username" value="{{ last_username }}" autocomplete="email" required autofocus&gt;
+    &lt;input type="password" name="_password" autocomplete="current-password" required&gt;
+    &lt;input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}"&gt;
+    &lt;button type="submit"&gt;Se connecter&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li>Les <code>name</code> <code>_username</code>, <code>_password</code> et <code>_csrf_token</code> sont attendus par Security : <strong>ne pas les renommer</strong>.</li>
+        <li>Garder le champ caché <code>_csrf_token</code> généré (protection contre les envois forcés).</li>
+        <li>Mettre le design du site : carte daisyUI, <code>input w-full</code>, <code>btn btn-primary</code>.</li>
+        <li><code>last_username</code> : le dernier email saisi, ré-affiché après une erreur.</li>
+    </ul>
+{% endverbatim %}
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="header">
+{% verbatim %}
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>{% if app.user %}
+    &lt;span&gt;{{ app.user.firstname }}&lt;/span&gt;
+    &lt;a href="{{ path('app_logout') }}" class="btn btn-ghost btn-sm"&gt;Déconnexion&lt;/a&gt;
+{% else %}
+    &lt;a href="{{ path('app_login') }}" class="btn btn-ghost btn-sm"&gt;Connexion&lt;/a&gt;
+    &lt;a href="{{ path('app_register') }}" class="btn btn-primary btn-sm"&gt;Inscription&lt;/a&gt;
+{% endif %}</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li><code>app.user</code> vaut <code>null</code> pour un visiteur anonyme.</li>
+        <li>Ne pas mettre le formulaire dans le header : des <strong>liens</strong> vers <code>/login</code> et <code>/register</code> suffisent.</li>
+        <li>Ne pas écrire <code>path('app_login')</code> avant d'avoir créé la route : <code>Unable to generate a URL for the named route</code>.</li>
+    </ul>
+{% endverbatim %}
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="proteger">
+{% verbatim %}
+    <p class="mb-2">Deux façons, au choix.</p>
+    <p class="mb-2"><strong>Par URL</strong>, dans <code>security.yaml</code> (le premier motif qui correspond gagne) :</p>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>access_control:
+    - { path: ^/login, roles: PUBLIC_ACCESS }
+    - { path: ^/register, roles: PUBLIC_ACCESS }
+    - { path: ^/admin, roles: ROLE_ADMIN }
+    - { path: ^/profil, roles: ROLE_USER }</code></pre>
+    <p class="mt-3 mb-2"><strong>Par contrôleur</strong>, avec un attribut (recommandé) :</p>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+#[IsGranted('ROLE_USER')]                    // sur toute la classe
+final class ProfileController extends AbstractController
+{
+    #[IsGranted('ROLE_ADMIN')]                 // ou sur une seule méthode
+    #[Route('/admin/users', name: 'app_admin_users')]
+    public function users(): Response { ... }
+}</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li>Visiteur non connecté : redirigé vers <code>/login</code>.</li>
+        <li>Connecté sans le bon rôle : erreur 403.</li>
+    </ul>
+{% endverbatim %}
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="roles">
+{% verbatim %}
+    <ul class="list-disc pl-6 space-y-1">
+        <li>La colonne <code>roles</code> est un tableau JSON : <code>["ROLE_ADMIN"]</code>. <code>getRoles()</code> ajoute toujours <code>ROLE_USER</code>.</li>
+        <li>Un rôle commence toujours par <code>ROLE_</code>.</li>
+        <li>Créer un admin : <code>$user->setRoles(['ROLE_ADMIN']);</code> (fixture ou modification en base).</li>
+        <li>Hiérarchie : <code>role_hierarchy: { ROLE_ADMIN: ROLE_USER }</code> dans <code>security.yaml</code>.</li>
+    </ul>
+    <p class="mt-3 mb-2">Utiliser l'utilisateur connecté :</p>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>// Contrôleur
+$user = $this->getUser();                                   // ?UserInterface
+public function profil(#[CurrentUser] User $user): Response  // typé
+
+{# Twig #}
+{% if is_granted('ROLE_ADMIN') %}...{% endif %}
+{{ app.user.email }}</code></pre>
+{% endverbatim %}
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="tester">
+    <ol class="list-decimal pl-6 space-y-1">
+        <li>S'inscrire sur <code>/register</code>.</li>
+        <li>Se connecter sur <code>/login</code> : le header affiche le prénom.</li>
+        <li>Se déconnecter via <code>/logout</code>.</li>
+        <li>Ouvrir une page protégée sans être connecté : redirection vers <code>/login</code>.</li>
+        <li>Essayer un mauvais mot de passe : le message d'erreur s'affiche.</li>
+    </ol>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto mt-2"><code>symfony console debug:router | findstr log   # app_login et app_logout existent ?
+symfony console debug:firewall main           # configuration du firewall</code></pre>
+</twig:CheatStep>
+
+<section class="mb-8">
+    <h2 class="text-xl font-bold mb-2">Erreurs fréquentes</h2>
+    <ul class="list-disc pl-6 space-y-1">
+        <li><code>Unknown column 't0.roles'</code> : la migration n'a pas été faite après <code>make:user</code>.</li>
+        <li><code>Invalid credentials</code> avec un compte des fixtures : mot de passe non hashé. Passer par l'inscription.</li>
+        <li><code>Cannot autowire service ... UserRepository</code> : un service dépend d'une classe déplacée, voir l'étape 1.</li>
+        <li><code>Unable to generate a URL for the named route "app_login"</code> : <code>make:security:form-login</code> n'a pas encore été lancé.</li>
+        <li>Connexion qui boucle sans erreur : <code>check_path</code> ne correspond pas à la route du formulaire, ou le champ <code>_csrf_token</code> manque.</li>
+        <li><code>Invalid CSRF token</code> : cache ou session expirée, recharger la page de login.</li>
+        <li>Un <code>access_control</code> trop large bloque <code>/login</code> : le laisser en <code>PUBLIC_ACCESS</code>.</li>
+        <li>Rôle sans effet : il doit commencer par <code>ROLE_</code>, et l'utilisateur doit se reconnecter après un changement.</li>
+    </ul>
+</section>
+{% endblock %}

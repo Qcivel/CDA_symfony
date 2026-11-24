@@ -1,0 +1,9 @@
+{% props steps, step %}
+{% set num = (steps|keys|filter(k => k == step)|keys|first) + 1 %}
+<section id="{{ step }}" class="mb-10 scroll-mt-20">
+    <h2 class="mb-3 flex items-center gap-3 text-xl font-bold">
+        <span class="badge badge-primary">{{ num }}</span>
+        {{ steps[step] }}
+    </h2>
+    {% block content %}{% endblock %}
+</section>

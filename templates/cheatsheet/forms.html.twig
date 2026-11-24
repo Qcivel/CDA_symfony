@@ -1,0 +1,202 @@
+{% extends 'cheatsheet/layout.html.twig' %}
+
+{% block title %}CheatSheet : formulaires{% endblock %}
+
+{% block sheet %}
+{% set steps = {
+    installer: 'Vérifier les paquets',
+    type: 'Créer le type de formulaire',
+    validation: 'Ajouter la validation',
+    controleur: 'Traiter le formulaire dans le contrôleur',
+    template: 'Afficher le formulaire',
+    modifier: 'Modifier un objet existant',
+    flash: 'Prévenir l\'utilisateur (message flash)',
+} %}
+
+<h1 class="text-3xl font-bold mb-6">Formulaires Symfony</h1>
+
+<twig:CheatSteps title="Pour créer un formulaire :" :steps="steps" />
+
+<twig:CheatStep :steps="steps" step="installer">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>composer require symfony/form symfony/validator</code></pre>
+    <p class="mt-2">Déjà présents avec <code>symfony new --webapp</code>. À installer seulement s'ils manquent.</p>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="type">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>php bin/console make:form BookType Book</code></pre>
+    <p class="mt-2 mb-2">Crée <code>src/Form/BookType.php</code>, lié à l'entité <code>Book</code> :</p>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>class BookType extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+        $builder
+            -&gt;add('title', TextType::class, [
+                'label' =&gt; 'Titre',
+                'attr' =&gt; ['placeholder' =&gt; 'Le titre du livre'],
+            ])
+            -&gt;add('resume', TextareaType::class, ['label' =&gt; 'Résumé', 'required' =&gt; false])
+            -&gt;add('publishAt', DateType::class, ['widget' =&gt; 'single_text'])
+            -&gt;add('categories', EntityType::class, [
+                'class' =&gt; Category::class,
+                'choice_label' =&gt; 'name',
+                'multiple' =&gt; true,
+                'expanded' =&gt; true,
+            ]);
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver-&gt;setDefaults(['data_class' =&gt; Book::class]);
+    }
+}</code></pre>
+    <h3 class="font-semibold mt-4 mb-2">Types de champs courants</h3>
+    <div class="overflow-x-auto rounded-box border border-base-300">
+        <table class="table">
+            <thead><tr><th>Type</th><th>Pour</th></tr></thead>
+            <tbody>
+                <tr><td><code>TextType</code>, <code>TextareaType</code></td><td>Texte court, texte long</td></tr>
+                <tr><td><code>EmailType</code>, <code>PasswordType</code></td><td>Email, mot de passe</td></tr>
+                <tr><td><code>IntegerType</code>, <code>NumberType</code></td><td>Entier, nombre décimal</td></tr>
+                <tr><td><code>DateType</code> (<code>widget: single_text</code>)</td><td>Date avec un seul champ HTML</td></tr>
+                <tr><td><code>CheckboxType</code></td><td>Case à cocher (booléen)</td></tr>
+                <tr><td><code>ChoiceType</code></td><td>Liste fixe de valeurs</td></tr>
+                <tr><td><code>EnumType</code> (<code>class: Difficulty::class</code>)</td><td>Valeurs d'une enum PHP</td></tr>
+                <tr><td><code>EntityType</code> (<code>class</code>, <code>choice_label</code>)</td><td>Choisir des entités existantes</td></tr>
+                <tr><td><code>SubmitType</code></td><td>Bouton d'envoi</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <h3 class="font-semibold mt-4 mb-2">Options utiles</h3>
+    <ul class="list-disc pl-6 space-y-1">
+        <li><code>label</code>, <code>attr</code> (classe, placeholder, autocomplete), <code>help</code>, <code>required</code></li>
+        <li><code>mapped: false</code> : le champ n'est pas lu dans l'entité (mot de passe en clair, case des conditions). On le récupère avec <code>$form->get('champ')->getData()</code>.</li>
+        <li><code>constraints</code> : règles de validation directement dans le formulaire.</li>
+    </ul>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="validation">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>use Symfony\Component\Validator\Constraints as Assert;
+
+class Book
+{
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le titre est obligatoire.')]
+    #[Assert\Length(min: 3, minMessage: '3 caractères minimum.')]
+    private ?string $title = null;
+}</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li>Contraintes courantes : <code>NotBlank</code>, <code>Length</code>, <code>Email</code>, <code>Range</code>, <code>Positive</code>, <code>IsTrue</code>, <code>UniqueEntity</code> (sur la classe).</li>
+        <li>Mettre les contraintes sur l'<strong>entité</strong> : elles s'appliquent partout. Pour un champ <code>mapped: false</code>, les mettre dans <code>constraints</code> du formulaire.</li>
+        <li>Les messages sont ceux qu'on écrit : les mettre en français.</li>
+        <li>La validation HTML (<code>required</code>) n'est pas la validation Symfony : la seconde est celle qui compte.</li>
+    </ul>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="controleur">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>#[Route('/books/new', name: 'app_book_new')]
+public function new(Request $request, EntityManagerInterface $em): Response
+{
+    $book = new Book();
+    $form = $this-&gt;createForm(BookType::class, $book);
+    $form-&gt;handleRequest($request);
+
+    if ($form-&gt;isSubmitted() &amp;&amp; $form-&gt;isValid()) {
+        $em-&gt;persist($book);
+        $em-&gt;flush();
+
+        return $this-&gt;redirectToRoute('app_book_all');   // Post / Redirect / Get
+    }
+
+    return $this-&gt;render('book/new.html.twig', ['form' =&gt; $form]);
+}</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li>Le même contrôleur affiche le formulaire (GET) et le traite (POST).</li>
+        <li><code>handleRequest()</code> remplit l'objet avec les données envoyées.</li>
+        <li>Toujours <strong>rediriger</strong> après un succès, sinon un rechargement renvoie le formulaire.</li>
+        <li>Formulaire invalide : le <code>render()</code> renvoie automatiquement le statut 422 avec les erreurs.</li>
+        <li>Pour un objet <code>User</code> : hasher le mot de passe avant le <code>persist()</code> (voir cheatsheet « Authentification »).</li>
+    </ul>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="template">
+{% verbatim %}
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>{# Tout d'un coup #}
+{{ form(form) }}
+
+{# Champ par champ : contrôle total du design #}
+{{ form_start(form) }}
+    {{ form_row(form.title) }}                       {# label + champ + erreurs #}
+    {{ form_row(form.resume, {attr: {rows: 5}}) }}
+    {{ form_row(form.categories) }}
+    &lt;button type="submit" class="btn btn-primary"&gt;Enregistrer&lt;/button&gt;
+{{ form_end(form) }}</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li><code>form_row</code> = <code>form_label</code> + <code>form_widget</code> + <code>form_errors</code>.</li>
+        <li><code>form_end</code> affiche aussi les champs non rendus, dont le jeton CSRF caché (<code>_token</code>). Ne jamais l'oublier.</li>
+        <li>Erreurs globales du formulaire : <code>form.vars.errors</code> ; erreurs d'un champ : <code>form.title.vars.errors</code>.</li>
+    </ul>
+
+    <h3 class="font-semibold mt-4 mb-2">Le design (daisyUI)</h3>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code># config/packages/twig.yaml
+twig:
+    form_themes: ['daisyui_5_layout.html.twig']</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li>Un thème de formulaire Symfony applique les classes daisyUI (<code>label</code>, <code>input</code>, <code>input-error</code>, <code>checkbox</code>, <code>btn</code>) à tous les champs.</li>
+        <li>Largeur complète d'un champ : <code>{{ form_row(form.title, {attr: {class: 'input w-full'}}) }}</code>.</li>
+        <li>Mise en place complète (dont la ligne <code>@source</code> pour Tailwind) : cheatsheet « CSS ».</li>
+    </ul>
+{% endverbatim %}
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="modifier">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>#[Route('/books/{id}/edit', name: 'app_book_edit', requirements: ['id' =&gt; '\d+'])]
+public function edit(Book $book, Request $request, EntityManagerInterface $em): Response
+{
+    $form = $this-&gt;createForm(BookType::class, $book);   // formulaire pré-rempli
+    $form-&gt;handleRequest($request);
+
+    if ($form-&gt;isSubmitted() &amp;&amp; $form-&gt;isValid()) {
+        $em-&gt;flush();                                     // pas de persist : l'objet existe déjà
+        return $this-&gt;redirectToRoute('app_book_detail', ['id' =&gt; $book-&gt;getId()]);
+    }
+
+    return $this-&gt;render('book/edit.html.twig', ['form' =&gt; $form, 'book' =&gt; $book]);
+}</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li><code>Book $book</code> dans la signature : Symfony charge le livre depuis <code>{id}</code> et répond 404 s'il n'existe pas.</li>
+        <li>Le même <code>BookType</code> sert à la création et à la modification.</li>
+    </ul>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="flash">
+{% verbatim %}
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>// Contrôleur, avant la redirection
+$this->addFlash('success', 'Livre enregistré.');
+
+{# Template (base.html.twig), avec le composant Alert #}
+{% for message in app.flashes('success') %}
+    &lt;twig:Alert type="success" :message="message" /&gt;
+{% endfor %}</code></pre>
+    <p class="mt-2">Le message survit à la redirection, puis disparaît après son affichage. Autres types courants : <code>error</code>, <code>warning</code>, <code>info</code>.</p>
+{% endverbatim %}
+</twig:CheatStep>
+
+<section class="mb-8">
+    <h2 class="text-xl font-bold mb-2">Formulaire de recherche (GET)</h2>
+    <p>Pour une recherche, pas besoin d'un type de formulaire : un simple <code>&lt;form method="get"&gt;</code> HTML et <code>#[MapQueryParameter]</code> suffisent. Voir la cheatsheet « Paramètres ».</p>
+</section>
+
+<section class="mb-8">
+    <h2 class="text-xl font-bold mb-2">Erreurs fréquentes</h2>
+    <ul class="list-disc pl-6 space-y-1">
+        <li>Le formulaire ne se soumet jamais : il manque <code>handleRequest($request)</code>, ou le bouton est hors de <code>form_start</code> / <code>form_end</code>.</li>
+        <li><code>The CSRF token is invalid</code> : <code>form_end</code> absent du template (jeton non rendu), ou session expirée.</li>
+        <li><code>Object of class Category could not be converted to string</code> : <code>EntityType</code> sans <code>choice_label</code>.</li>
+        <li><code>This form should not contain extra fields</code> : un <code>name</code> écrit à la main ne correspond pas à un champ du type.</li>
+        <li><code>TypeError ... must be of type string, null given</code> : un champ vide envoyé à un setter non nullable. Ajouter <code>NotBlank</code> sur l'entité.</li>
+        <li>Le champ n'est pas enregistré : il est en <code>mapped: false</code> et personne ne lit sa valeur dans le contrôleur.</li>
+        <li><code>Variable "form" does not exist</code> : la clé <code>'form' =&gt; $form</code> manque dans <code>render()</code>.</li>
+        <li>Le design ne s'applique pas : thème non déclaré dans <code>twig.yaml</code>, ou cache à vider.</li>
+    </ul>
+</section>
+{% endblock %}

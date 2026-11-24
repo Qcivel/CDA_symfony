@@ -1,0 +1,66 @@
+{% extends 'cheatsheet/layout.html.twig' %}
+
+{% block title %}CheatSheets{% endblock %}
+
+{% block sheet %}
+<h1 class="text-3xl font-bold mb-2">CheatSheets</h1>
+<p class="mb-2">Mémo rapide : où trouver la commande ou le snippet dont j'ai besoin.</p>
+<p class="mb-6 opacity-70 text-sm">Chaque page commence par une todolist d'étapes (« Pour faire X : étape 1, 2, 3... »). Un clic sur une étape mène à sa section détaillée, avec les commandes et le code.</p>
+
+<div class="grid gap-4 sm:grid-cols-2">
+    <a href="{{ path('app_cheatsheet_setup') }}" class="card bg-base-200 hover:bg-base-300">
+        <div class="card-body">
+            <h2 class="card-title">Mise en place</h2>
+            <p>Installer le projet, les paquets, la base de données, lancer le serveur.</p>
+        </div>
+    </a>
+    <a href="{{ path('app_cheatsheet_controller') }}" class="card bg-base-200 hover:bg-base-300">
+        <div class="card-body">
+            <h2 class="card-title">Controller</h2>
+            <p>Créer une page : route, paramètres, rendu Twig, redirections, services.</p>
+        </div>
+    </a>
+    <a href="{{ path('app_cheatsheet_entity') }}" class="card bg-base-200 hover:bg-base-300">
+        <div class="card-body">
+            <h2 class="card-title">Entity</h2>
+            <p>Entités, relations, migrations, fixtures, repository.</p>
+        </div>
+    </a>
+    <a href="{{ path('app_cheatsheet_tailwind') }}" class="card bg-base-200 hover:bg-base-300">
+        <div class="card-body">
+            <h2 class="card-title">CSS : Tailwind et daisyUI</h2>
+            <p>Installer Tailwind et daisyUI, thèmes clair / sombre, thème de formulaire, autres frameworks.</p>
+        </div>
+    </a>
+    <a href="{{ path('app_cheatsheet_components') }}" class="card bg-base-200 hover:bg-base-300">
+        <div class="card-body">
+            <h2 class="card-title">Composants</h2>
+            <p>Composants anonymes ou avec classe PHP, props, appel, erreurs.</p>
+        </div>
+    </a>
+    <a href="{{ path('app_cheatsheet_querybuilder') }}" class="card bg-base-200 hover:bg-base-300">
+        <div class="card-body">
+            <h2 class="card-title">QueryBuilder</h2>
+            <p>Requêtes Doctrine : where, LIKE, join, tri, résultats.</p>
+        </div>
+    </a>
+    <a href="{{ path('app_cheatsheet_params') }}" class="card bg-base-200 hover:bg-base-300">
+        <div class="card-body">
+            <h2 class="card-title">Paramètres</h2>
+            <p>MapQueryParameter, paramètres de chemin, formulaires GET.</p>
+        </div>
+    </a>
+    <a href="{{ path('app_cheatsheet_forms') }}" class="card bg-base-200 hover:bg-base-300">
+        <div class="card-body">
+            <h2 class="card-title">Formulaires</h2>
+            <p>Type de formulaire, validation, contrôleur, affichage, modification, messages flash.</p>
+        </div>
+    </a>
+    <a href="{{ path('app_cheatsheet_auth') }}" class="card bg-base-200 hover:bg-base-300">
+        <div class="card-body">
+            <h2 class="card-title">Authentification</h2>
+            <p>User, inscription, login / logout, rôles, protection des pages.</p>
+        </div>
+    </a>
+</div>
+{% endblock %}

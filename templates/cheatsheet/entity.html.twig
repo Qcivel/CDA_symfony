@@ -1,0 +1,114 @@
+{% extends 'cheatsheet/layout.html.twig' %}
+
+{% block title %}CheatSheet : entity{% endblock %}
+
+{% block sheet %}
+{% set steps = {
+    entite: "Créer l'entité",
+    relations: 'Ajouter les relations',
+    migration: 'Migrer la base de données',
+    fixtures: 'Remplir avec des fixtures',
+    service: 'Repository et service',
+} %}
+
+<h1 class="text-3xl font-bold mb-6">Entity</h1>
+
+<twig:CheatSteps title="Pour ajouter une table à la base :" :steps="steps" />
+
+<twig:CheatStep :steps="steps" step="entite">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>php bin/console make:entity Category</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li><code>id</code> est ajouté automatiquement, ne pas le saisir.</li>
+        <li>Entrée à vide pour terminer la saisie des champs.</li>
+        <li>Relancer la commande sur une entité existante pour <strong>ajouter</strong> des champs.</li>
+        <li>Crée aussi <code>src/Repository/CategoryRepository.php</code>.</li>
+    </ul>
+    <p class="mt-3 mb-2">Types de champs :</p>
+    <ul class="list-disc pl-6 space-y-1">
+        <li><code>string</code> : texte court (255 par défaut)</li>
+        <li><code>text</code> : texte long (résumé, description)</li>
+        <li><code>integer</code>, <code>boolean</code>, <code>float</code></li>
+        <li><code>datetime_immutable</code> : date et heure</li>
+        <li><code>enum</code> : valeur parmi celles d'une enum PHP (créer l'enum avant)</li>
+        <li><code>relation</code> : lien vers une autre entité</li>
+    </ul>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="relations">
+    <p class="mb-2">Type <code>relation</code>, puis la classe cible et le type :</p>
+    <ul class="list-disc pl-6 space-y-1">
+        <li><strong>ManyToOne</strong> : plusieurs livres pour un utilisateur (la clé étrangère est dans la table du « plusieurs »).</li>
+        <li><strong>ManyToMany</strong> : plusieurs catégories par livre et inversement (crée une table de jointure).</li>
+        <li><strong>OneToMany</strong> : le côté inverse d'un ManyToOne, généré à la demande.</li>
+        <li>Nullable <code>yes</code> si la relation est facultative (<code>?User</code>).</li>
+        <li>Ajouter la propriété inverse sur l'autre entité : <code>no</code> si le diagramme ne la prévoit pas.</li>
+    </ul>
+    <p class="mt-2">L'entité cible doit exister avant la relation : créer d'abord les entités simples, puis celle qui les référence.</p>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="migration">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>php bin/console make:migration
+php bin/console doctrine:migrations:migrate
+php bin/console doctrine:schema:validate</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li>Relire le fichier généré dans <code>migrations/</code> avant de migrer.</li>
+        <li>Modifier une entité : modifier le code, puis une nouvelle migration. Ne jamais éditer une ancienne migration.</li>
+        <li>Pas de <code>doctrine:schema:update --force</code> ni de modification à la main dans Workbench.</li>
+        <li>Renommer une entité : Doctrine génère un <code>CREATE</code> + <code>DROP</code>. Le remplacer par <code>RENAME TABLE ancien TO nouveau</code> pour garder les données.</li>
+        <li>Raccourcis : <code>d:m:m</code> (migrate), <code>d:f:l</code> (fixtures:load).</li>
+    </ul>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="fixtures">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>// src/DataFixtures/AppFixtures.php
+public function load(ObjectManager $manager): void
+{
+    $faker = Factory::create('fr_FR');
+
+    $categories = [];
+    for ($i = 0; $i &lt; 20; $i++) {
+        $category = new Category();
+        $category->setName($faker->word());
+        $manager->persist($category);
+        $categories[] = $category;   // on garde les objets pour les relations
+    }
+
+    // ... puis les livres :
+    $book->addCategory($faker->randomElement($categories));
+
+    $manager->flush();   // écrit tout en base, une seule fois
+}</code></pre>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto mt-2"><code>php bin/console doctrine:fixtures:load           # vide les tables puis charge
+php bin/console doctrine:fixtures:load --append  # ajoute sans vider</code></pre>
+    <p class="mt-2">Sans <code>flush()</code> à la fin, rien n'est écrit en base. Le <code>load</code> purge <strong>toutes</strong> les tables : les comptes créés à la main disparaissent aussi.</p>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="service">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>// src/Service/UserService.php
+class UserService
+{
+    public function __construct(private UserRepository $userRepository)
+    {
+    }
+
+    /** @return User[] */
+    public function getUsers(): array
+    {
+        return $this->userRepository->findAll();
+    }
+}</code></pre>
+    <p class="mt-2">Méthodes héritées : <code>findAll()</code>, <code>find($id)</code>, <code>findBy([...])</code>, <code>findOneBy([...])</code>. Pas de commande pour créer un service : c'est une simple classe dans <code>src/Service</code>, injectée par autowiring. Pour une requête sur mesure : cheatsheet « QueryBuilder ».</p>
+</twig:CheatStep>
+
+<section class="mb-8">
+    <h2 class="text-xl font-bold mb-2">Erreurs fréquentes</h2>
+    <ul class="list-disc pl-6 space-y-1">
+        <li><code>Unknown class "User"</code> : l'entité n'existe pas encore, la créer avant la relation.</li>
+        <li><code>Column 'x' cannot be null</code> : un champ obligatoire n'est pas renseigné (fixtures) ou l'entité contient un champ en trop.</li>
+        <li><code>Unknown column 't0.x'</code> : l'entité a changé mais la migration n'a pas été faite.</li>
+        <li><code>Data too long</code> : passer le champ en <code>text</code>.</li>
+        <li><code>Duplicate entry</code> : valeur qui doit être unique (utiliser <code>$faker->unique()</code>).</li>
+        <li><code>Cannot autowire service ... class not found</code> : un service dépend d'un repository ou d'une entité déplacé ou supprimé.</li>
+    </ul>
+</section>
+{% endblock %}

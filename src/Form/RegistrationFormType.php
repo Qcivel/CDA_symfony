@@ -13,6 +13,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\IsTrue;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class RegistrationFormType extends AbstractType
 {
@@ -51,6 +53,16 @@ class RegistrationFormType extends AbstractType
                         max: 4096,
                     ),
                 ],
+            ])
+            ->add('icon', FileType::class, [
+                'label'=> 'Importer une image de profil au format png',
+                'constraints' =>[
+                    new Assert\File(
+                        maxSize: '1024k',
+                        extensions: ['png'],
+                        extensionsMessage: 'Veuillez choisir un fichier .png',
+                    )
+                ]
             ])
             ->add('agreeTerms', CheckboxType::class, [
                 'mapped' => false,

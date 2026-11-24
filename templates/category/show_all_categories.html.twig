@@ -28,7 +28,7 @@
                     <div class="card-body flex-row items-center justify-between gap-4">
                         <twig:InfoCard name="{{ category.name }}"/>
 
-                        {% if is_granted('ROLE_USER') %}
+                        {% if is_granted('ROLE_ADMIN') %}
                             <a href="{{ path('app_categories_edit', {id: category.id}) }}"
                                class="btn btn-ghost btn-sm">Modifier</a>
                         {% endif %}

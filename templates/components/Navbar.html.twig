@@ -28,6 +28,12 @@
                     Home
                 </a>
             </li>
+            <li>
+                <a href="{{ path('app_cheatsheet') }}" class="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-indigo-600
+                                   md:p-0 md:hover:bg-transparent">
+                    CheatSheet
+                </a>
+            </li>
             {# Catégories avec sous-menu #}
             {% if app.user %}
             <li class="group relative">
@@ -54,7 +60,7 @@
                                 Toutes les catégories
                             </a>
                         </li>
-                        {% if is_granted('ROLE_USER') %}
+                        {% if is_granted('ROLE_ADMIN') %}
                         <li>
                             <a href="{{ path('app_category_new') }}"
                                class="block rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-indigo-600
@@ -97,12 +103,14 @@
                     Les livres
                 </a>
             </li>
+            {% if is_granted('ROLE_ADMIN') %}
             <li>
                 <a href="{{ path('app_book_new')}}" class="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-indigo-600
                                    md:p-0 md:hover:bg-transparent">
                     Ajouter un  livres
                 </a>
             </li>
+            {% endif %}
             <li>
                 <a href="/logout" class="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-indigo-600
                                    md:p-0 md:hover:bg-transparent">

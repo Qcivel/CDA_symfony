@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% set sheets = {
+    'Mise en place': 'app_cheatsheet_setup',
+    'Controller': 'app_cheatsheet_controller',
+    'Entity': 'app_cheatsheet_entity',
+    'CSS': 'app_cheatsheet_tailwind',
+    'Composants': 'app_cheatsheet_components',
+    'QueryBuilder': 'app_cheatsheet_querybuilder',
+    'Paramètres': 'app_cheatsheet_params',
+    'Formulaires': 'app_cheatsheet_forms',
+    'Authentification': 'app_cheatsheet_auth',
+} %}
+
+{% block body %}
+<div class="mx-auto max-w-3xl px-4 py-8">
+    <div role="tablist" class="tabs tabs-box mb-6 flex-wrap">
+        <a href="{{ path('app_cheatsheet') }}" role="tab" class="tab {{ app.current_route == 'app_cheatsheet' ? 'tab-active' : '' }}">Index</a>
+        {% for label, route in sheets %}
+            <a href="{{ path(route) }}" role="tab" class="tab {{ app.current_route == route ? 'tab-active' : '' }}">{{ label }}</a>
+        {% endfor %}
+    </div>
+
+    {% block sheet %}{% endblock %}
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends 'cheatsheet/layout.html.twig' %}
+
+{% block title %}CheatSheet : mise en place{% endblock %}
+
+{% block sheet %}
+{% set steps = {
+    prerequis: 'Vérifier les prérequis',
+    projet: 'Créer le projet',
+    serveur: 'Lancer le serveur',
+    paquets: 'Installer les paquets',
+    base: 'Configurer la base de données',
+} %}
+
+<h1 class="text-3xl font-bold mb-6">Mise en place</h1>
+
+<twig:CheatSteps title="Pour démarrer un projet Symfony :" :steps="steps" />
+
+<twig:CheatStep :steps="steps" step="prerequis">
+    <p class="mb-2">PHP, Composer, Symfony CLI, un serveur MySQL / MariaDB, Git.</p>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>php -v
+composer -V
+symfony check:requirements</code></pre>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="projet">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>symfony new mon_projet --webapp
+cd mon_projet</code></pre>
+    <p class="mt-2">Version et paquets installés : <code>composer.json</code> et <code>symfony.lock</code>.</p>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="serveur">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>symfony serve -d       # démarre en arrière-plan
+symfony server:stop    # arrête</code></pre>
+    <p class="mt-2 mb-2">La console, pour toutes les autres commandes :</p>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>php bin/console list      # toutes les commandes
+php bin/console about     # versions, environnement
+symfony console ...       # équivalent avec le CLI Symfony</code></pre>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="paquets">
+    <p class="mb-2">Toujours avec Composer : la recette Flex configure le bundle toute seule.</p>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>composer require twig
+composer require symfony/orm-pack
+composer require --dev symfony/maker-bundle
+composer require --dev orm-fixtures
+composer require fakerphp/faker
+composer require --dev symfony/test-pack</code></pre>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="base">
+    <p class="mb-2">Dans <code>.env.local</code> (jamais dans <code>.env</code>, qui est commité) :</p>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>DATABASE_URL="mysql://utilisateur:motdepasse@127.0.0.1:3306/app?serverVersion=8.0"</code></pre>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto mt-2"><code>php bin/console doctrine:database:create</code></pre>
+    <p class="mt-2">Si la base existe déjà, l'erreur « database exists » est sans conséquence.</p>
+</twig:CheatStep>
+
+<section class="mb-8">
+    <h2 class="text-xl font-bold mb-2">Où ranger quoi</h2>
+    <ul class="list-disc pl-6 space-y-1">
+        <li><code>src/Controller</code> : contrôleurs</li>
+        <li><code>src/Entity</code> et <code>src/Repository</code> : entités et leurs requêtes</li>
+        <li><code>src/Service</code> : logique métier</li>
+        <li><code>src/Form</code> : types de formulaires</li>
+        <li><code>src/Dto</code> : objets de transfert vers les templates</li>
+        <li><code>src/DataFixtures</code> : jeux de données</li>
+        <li><code>templates/</code> : templates Twig (<code>templates/components</code> : composants)</li>
+        <li><code>config/routes.yaml</code> : routes en YAML</li>
+        <li><code>migrations/</code> : historique de la base</li>
+        <li><code>assets/</code> : CSS et JavaScript</li>
+    </ul>
+</section>
+
+<section class="mb-8">
+    <h2 class="text-xl font-bold mb-2">Pièges à connaître</h2>
+    <ul class="list-disc pl-6 space-y-1">
+        <li>Sous Windows, lancer les commandes interactives (<code>make:entity</code>) dans <strong>PowerShell</strong>, pas dans Git Bash.</li>
+        <li>Une configuration sans effet : <code>php bin/console cache:clear</code>.</li>
+        <li>Une erreur inexplicable : lire <code>var/log/dev.log</code> et le profiler <code>/_profiler</code>.</li>
+        <li>Les secrets vont dans <code>.env.local</code>, jamais dans <code>.env</code>.</li>
+        <li>En <code>dev</code>, une erreur 404 affiche la page de debug : la vraie page d'erreur ne se voit qu'en <code>prod</code> (ou sur <code>/_error/404</code>).</li>
+    </ul>
+</section>
+{% endblock %}

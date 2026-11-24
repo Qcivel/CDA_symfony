@@ -1,0 +1,144 @@
+{% extends 'cheatsheet/layout.html.twig' %}
+
+{% block title %}CheatSheet : composants{% endblock %}
+
+{% block sheet %}
+{% set steps = {
+    installer: 'Installer le bundle',
+    choisir: 'Choisir : anonyme ou classe PHP',
+    ecrire: 'Écrire le composant',
+    appeler: 'Appeler le composant',
+    contenu: 'Passer du contenu imbriqué (facultatif)',
+} %}
+
+<h1 class="text-3xl font-bold mb-6">Composants Twig</h1>
+
+<twig:CheatSteps title="Pour créer un composant réutilisable :" :steps="steps" />
+
+<twig:CheatStep :steps="steps" step="installer">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>composer require symfony/ux-twig-component</code></pre>
+    <p class="mt-2">Un composant est un morceau d'interface réutilisable (card, alerte, badge) qu'on appelle avec une balise. Le nom de la balise = le nom du fichier du composant, en <strong>PascalCase</strong>. Aucun import n'est nécessaire.</p>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="choisir">
+{% verbatim %}
+    <div class="overflow-x-auto rounded-box border border-base-300">
+        <table class="table">
+            <thead>
+                <tr><th></th><th>Anonyme (template seul)</th><th>Avec classe PHP</th></tr>
+            </thead>
+            <tbody>
+                <tr><th>Fichiers</th><td><code>templates/components/Alert.html.twig</code></td><td><code>src/Twig/Components/Badge.php</code> + <code>templates/components/Badge.html.twig</code></td></tr>
+                <tr><th>Déclaration</th><td>Aucune, le fichier suffit</td><td><code>#[AsTwigComponent]</code> sur la classe</td></tr>
+                <tr><th>Les props</th><td><code>{% props message, type = 'info' %}</code> dans le template</td><td>Propriétés <strong>publiques</strong> de la classe</td></tr>
+                <tr><th>Logique</th><td>Uniquement en Twig (<code>if</code>, tableaux, filtres)</td><td>En PHP : méthodes, <code>match</code>, calculs</td></tr>
+                <tr><th>Services (repository...)</th><td>Non</td><td>Oui, par le constructeur (autowiring)</td></tr>
+                <tr><th>Quand l'utiliser</th><td>Simple affichage : card, alerte, badge</td><td>Besoin de PHP ou de données à calculer</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="mt-2">Règle : <strong>commencer par un composant anonyme</strong> et ne passer à une classe que si le template devient trop compliqué.</p>
+{% endverbatim %}
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="ecrire">
+{% verbatim %}
+    <h3 class="font-semibold mb-2">Composant anonyme</h3>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>{# templates/components/Alert.html.twig #}
+{% props message, type = 'info' %}
+
+{% set classes = {
+    info: 'alert-info',
+    success: 'alert-success',
+    error: 'alert-error',
+} %}
+
+&lt;div role="alert" {{ attributes.defaults({class: 'alert ' ~ (classes[type] ?? 'alert-info')}) }}&gt;
+    &lt;span&gt;{{ message }}&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li><code>message</code> sans valeur par défaut = <strong>obligatoire</strong>.</li>
+        <li><code>type = 'info'</code> = facultatif, avec une valeur par défaut (les guillemets sont nécessaires).</li>
+        <li><code>attributes</code> reçoit les attributs passés à l'appel (<code>class="mb-4"</code>) et les fusionne avec ceux du composant.</li>
+    </ul>
+
+    <h3 class="font-semibold mt-5 mb-2">Composant avec classe PHP</h3>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>// src/Twig/Components/Badge.php
+namespace App\Twig\Components;
+
+use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
+
+#[AsTwigComponent]
+class Badge
+{
+    public string $label;               // prop obligatoire
+    public string $variant = 'neutral'; // prop avec valeur par défaut
+
+    public function getCssClass(): string
+    {
+        return match ($this->variant) {
+            'success' =&gt; 'badge-success',
+            'error' =&gt; 'badge-error',
+            default =&gt; 'badge-neutral',
+        };
+    }
+}</code></pre>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto mt-2"><code>{# templates/components/Badge.html.twig : PAS de {% props %} #}
+&lt;span class="badge {{ this.cssClass }}"&gt;{{ label }}&lt;/span&gt;</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li>Les propriétés publiques sont utilisables directement (<code>label</code>) ou via <code>this.label</code>.</li>
+        <li>Les méthodes s'appellent avec <code>this</code> : <code>this.cssClass</code> appelle <code>getCssClass()</code>.</li>
+        <li>Le template porte le même nom que la classe (<code>Badge</code>).</li>
+        <li>Pour injecter un service, l'ajouter au constructeur de la classe.</li>
+    </ul>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto mt-2"><code>php bin/console make:twig-component Badge   # crée la classe ET le template
+php bin/console debug:twig-component         # liste les composants connus</code></pre>
+    <p class="mt-2"><code>make:twig-component</code> génère toujours une classe. Pour un composant anonyme, créer seulement le fichier dans <code>templates/components/</code>.</p>
+{% endverbatim %}
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="appeler">
+{% verbatim %}
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>&lt;twig:Alert message="Texte fixe" /&gt;              {# chaîne de caractères #}
+&lt;twig:Alert :message="error" /&gt;                  {# ":" = expression Twig (variable) #}
+&lt;twig:Alert :message="'Résultat : ' ~ result" /&gt; {# expression complète #}
+&lt;twig:Alert message="Info" class="mb-4" /&gt;       {# attribut fusionné via attributes #}
+
+{% for user in users %}
+    &lt;twig:UserCard :user="user" /&gt;
+{% endfor %}</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li><code>nom="texte"</code> envoie une chaîne. <code>:nom="variable"</code> envoie la valeur de l'expression.</li>
+        <li>Pas d'espace autour du <code>=</code>, valeur toujours entre guillemets.</li>
+        <li>Un composant ne voit <strong>pas</strong> les variables de la page : tout passe par les props.</li>
+    </ul>
+{% endverbatim %}
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="contenu">
+{% verbatim %}
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>{# templates/components/Card.html.twig #}
+&lt;div class="card bg-base-200"&gt;
+    &lt;div class="card-body"&gt;{% block content %}{% endblock %}&lt;/div&gt;
+&lt;/div&gt;
+
+{# appel #}
+&lt;twig:Card&gt;
+    &lt;p&gt;Ce texte arrive dans le bloc content.&lt;/p&gt;
+&lt;/twig:Card&gt;</code></pre>
+    <p class="mt-2">Les cheatsheets de ce projet utilisent ce mécanisme : <code>&lt;twig:CheatStep&gt;</code> reçoit le contenu de chaque étape.</p>
+{% endverbatim %}
+</twig:CheatStep>
+
+<section class="mb-8">
+    <h2 class="text-xl font-bold mb-2">Erreurs fréquentes</h2>
+    <ul class="list-disc pl-6 space-y-1">
+        <li><code>Cannot define prop "label"... already defined in component class</code> : une classe PHP ET un <code>props</code> pour le même composant. Garder l'un des deux (supprimer la classe, ou la ligne <code>props</code>).</li>
+        <li><code>Expected attribute name</code> : syntaxe de balise invalide, par exemple <code>formation = formation</code> avec des espaces et sans guillemets.</li>
+        <li>La prop arrive comme un texte au lieu d'un objet : le <code>:</code> manque devant le nom.</li>
+        <li><code>Unknown component</code> : mauvais nom ou mauvais dossier, vider le cache.</li>
+        <li>Une classe Tailwind construite dynamiquement (<code>badge-</code> + variable) n'est pas détectée. Utiliser un tableau de correspondance avec les noms de classes complets.</li>
+        <li>Une nouvelle classe Tailwind n'a aucun effet : relancer <code>tailwind:build</code>.</li>
+    </ul>
+</section>
+{% endblock %}

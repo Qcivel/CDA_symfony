@@ -42,6 +42,7 @@ class UserController extends AbstractController
 
 
     #[Route(path:'/user/{id}', name: 'app_user_id')]
+    #[IsGranted('ROLE_USER', message: 'Vous n\'êtes pas autorisé')]
     public function showUserById(int $id) 
     {
         $user = $this->userService->getUserById($id);

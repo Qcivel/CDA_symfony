@@ -1,0 +1,140 @@
+{% extends 'cheatsheet/layout.html.twig' %}
+
+{% block title %}CheatSheet : QueryBuilder{% endblock %}
+
+{% block sheet %}
+{% set steps = {
+    ou: "Savoir où écrire la requête",
+    requete: 'Construire la requête',
+    resultat: 'Choisir le type de résultat',
+    brancher: 'Brancher service et contrôleur',
+} %}
+
+<h1 class="text-3xl font-bold mb-6">QueryBuilder (Doctrine)</h1>
+
+<twig:CheatSteps title="Pour écrire une recherche en base :" :steps="steps" />
+
+<twig:CheatStep :steps="steps" step="ou">
+    <p>Dans le <strong>repository</strong> de l'entité (<code>src/Repository/BookRepository.php</code>). Le service l'appelle, le contrôleur appelle le service :</p>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto mt-2"><code>Controller  →  Service  →  Repository (QueryBuilder)  →  base de données</code></pre>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="requete">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>/** @return Book[] */
+public function findByTitle(string $title): array
+{
+    return $this->createQueryBuilder('b')          // 1. alias de l'entité
+        -&gt;andWhere('b.title LIKE :title')          // 2. conditions
+        -&gt;setParameter('title', '%' . $title . '%') // 3. valeur du paramètre
+        -&gt;orderBy('b.title', 'DESC')               // 4. tri, limite
+        -&gt;getQuery()                               // 5. construire la requête
+        -&gt;getResult();                             // 6. exécuter
+}</code></pre>
+    <p class="mt-2 mb-3">Tout ce qui modifie la requête se place <strong>avant</strong> <code>getQuery()</code>. Après, on n'a plus un QueryBuilder mais un résultat.</p>
+
+    <h3 class="font-semibold mb-2">Les méthodes courantes</h3>
+    <div class="overflow-x-auto rounded-box border border-base-300">
+        <table class="table">
+            <thead><tr><th>Méthode</th><th>Rôle</th></tr></thead>
+            <tbody>
+                <tr><td><code>createQueryBuilder('b')</code></td><td>Démarre la requête, <code>b</code> = alias de l'entité</td></tr>
+                <tr><td><code>andWhere('b.x = :x')</code></td><td>Ajoute une condition (<code>orWhere</code> pour un OU)</td></tr>
+                <tr><td><code>setParameter('x', $val)</code></td><td>Donne sa valeur au paramètre nommé <code>:x</code></td></tr>
+                <tr><td><code>orderBy('b.x', 'DESC')</code></td><td>Trie (<code>ASC</code> ou <code>DESC</code>, <code>addOrderBy</code> pour un 2e critère)</td></tr>
+                <tr><td><code>setMaxResults(10)</code></td><td>Limite le nombre de lignes</td></tr>
+                <tr><td><code>setFirstResult(20)</code></td><td>Saute des lignes (pagination)</td></tr>
+                <tr><td><code>innerJoin('b.categories', 'c')</code></td><td>Joint une relation, <code>c</code> = alias de la table jointe</td></tr>
+                <tr><td><code>addSelect('c')</code></td><td>Charge aussi l'entité jointe dans la même requête</td></tr>
+                <tr><td><code>groupBy</code> / <code>having</code></td><td>Regroupe pour des calculs (<code>COUNT</code>, <code>SUM</code>), pas pour trier</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3 class="font-semibold mt-5 mb-2">Opérateurs dans un where</h3>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>b.title = :title          // valeur exacte
+b.title LIKE :title       // motif : % remplace n'importe quels caractères
+b.publishAt &gt; :date       // &gt;, &gt;=, &lt;, &lt;=
+b.user IS NULL            // pas de valeur (livre disponible)
+b.id IN (:ids)            // dans une liste</code></pre>
+    <p class="mt-2">Pour <code>LIKE</code>, les <code>%</code> s'ajoutent à la <strong>valeur</strong>, pas à la requête :</p>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto mt-2"><code>-&gt;andWhere('b.title LIKE :title')
+-&gt;setParameter('title', '%' . $title . '%')   // contient
+// 'abc%' commence par, '%abc' finit par</code></pre>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="resultat">
+    <div class="overflow-x-auto rounded-box border border-base-300">
+        <table class="table">
+            <thead><tr><th>Méthode</th><th>Renvoie</th></tr></thead>
+            <tbody>
+                <tr><td><code>getResult()</code></td><td>Un tableau d'objets (cas le plus courant)</td></tr>
+                <tr><td><code>getOneOrNullResult()</code></td><td>Un objet ou <code>null</code> (erreur s'il y a plusieurs lignes)</td></tr>
+                <tr><td><code>getSingleScalarResult()</code></td><td>Une valeur unique, par exemple un <code>COUNT</code></td></tr>
+            </tbody>
+        </table>
+    </div>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto mt-2"><code>$count = $this-&gt;createQueryBuilder('b')
+    -&gt;select('COUNT(b.id)')
+    -&gt;getQuery()
+    -&gt;getSingleScalarResult();</code></pre>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="brancher">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>// Service : une méthode par recherche
+public function getBookByTitle(string $title): array
+{
+    return $this-&gt;bookRepository-&gt;findByTitle($title);
+}
+
+// Contrôleur
+#[Route('/books/search', name: 'app_book_search')]
+public function search(#[MapQueryParameter] string $title = ''): Response
+{
+    return $this-&gt;render('book/index.html.twig', [
+        'books' =&gt; $this-&gt;bookService-&gt;getBookByTitle($title),
+    ]);
+}</code></pre>
+    <p class="mt-2">Lecture du paramètre d'URL : cheatsheet « Paramètres ».</p>
+</twig:CheatStep>
+
+<section class="mb-8">
+    <h2 class="text-xl font-bold mb-2">Exemples du projet</h2>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>// Livres publiés à partir d'une date
+public function findPublishedAfter(\DateTimeInterface $date): array
+{
+    return $this-&gt;createQueryBuilder('b')
+        -&gt;andWhere('b.publishAt &gt;= :date')
+        -&gt;setParameter('date', $date)
+        -&gt;orderBy('b.publishAt', 'DESC')
+        -&gt;getQuery()
+        -&gt;getResult();
+}
+
+// Livres d'une catégorie (relation ManyToMany)
+public function findByCategory(string $categoryName): array
+{
+    return $this-&gt;createQueryBuilder('b')
+        -&gt;innerJoin('b.categories', 'c')
+        -&gt;andWhere('c.name LIKE :name')
+        -&gt;setParameter('name', '%' . $categoryName . '%')
+        -&gt;addSelect('c')
+        -&gt;getQuery()
+        -&gt;getResult();
+}</code></pre>
+    <p class="mt-2">Avec <code>addSelect('c')</code> et un filtre sur <code>c</code>, chaque livre ne contient que les catégories qui correspondent au filtre.</p>
+</section>
+
+<section class="mb-8">
+    <h2 class="text-xl font-bold mb-2">Erreurs fréquentes</h2>
+    <ul class="list-disc pl-6 space-y-1">
+        <li><code>groupBy</code> pour trier : c'est <code>orderBy</code>.</li>
+        <li>Ajouter une méthode après <code>getQuery()-&gt;getResult()</code> : le résultat n'est plus un QueryBuilder.</li>
+        <li><code>= :x</code> avec une valeur entourée de <code>%</code> : ne trouve rien, utiliser <code>LIKE</code>.</li>
+        <li><code>innerJoin('c.categories', 'b.categories')</code> : à l'envers. C'est <code>innerJoin('b.categories', 'c')</code> (relation, puis alias).</li>
+        <li>Comparer <code>b.categories = :x</code> : comparer plutôt un champ de l'alias joint, <code>c.name = :x</code>.</li>
+        <li><code>desc</code> sans guillemets : c'est une chaîne, <code>'DESC'</code>.</li>
+        <li>Type de retour <code>array</code> avec <code>getOneOrNullResult()</code> : utiliser <code>getResult()</code>.</li>
+        <li>Concaténer la valeur dans la requête : toujours passer par <code>setParameter</code> (sécurité contre l'injection SQL).</li>
+    </ul>
+</section>
+{% endblock %}

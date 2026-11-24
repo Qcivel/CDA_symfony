@@ -1,0 +1,135 @@
+{% extends 'cheatsheet/layout.html.twig' %}
+
+{% block title %}CheatSheet : CSS, Tailwind et daisyUI{% endblock %}
+
+{% block sheet %}
+{% set steps = {
+    tailwind: 'Installer Tailwind',
+    daisyui: 'Ajouter daisyUI',
+    compiler: 'Compiler le CSS',
+    charge: 'Vérifier que le CSS est chargé',
+    themes: 'Gérer les thèmes clair / sombre',
+    formulaires: 'Styliser les formulaires Symfony',
+    prod: 'Préparer la production',
+} %}
+
+<h1 class="text-3xl font-bold mb-6">CSS : Tailwind et daisyUI</h1>
+
+<twig:CheatSteps title="Pour mettre en place daisyUI dans Symfony :" :steps="steps" />
+
+<twig:CheatStep :steps="steps" step="tailwind">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>composer require symfonycasts/tailwind-bundle
+php bin/console tailwind:init
+php bin/console cache:clear</code></pre>
+    <p class="mt-2">Le bundle utilise le binaire autonome de Tailwind : pas besoin de Node.js. <code>tailwind:init</code> choisit la version (4) ; le <code>cache:clear</code> est nécessaire pour qu'elle soit prise en compte.</p>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="daisyui">
+    <p class="mb-2">Télécharger les deux fichiers dans <code>assets/styles/</code> (PowerShell) :</p>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>cd assets/styles
+curl.exe -sLO https://github.com/saadeghi/daisyui/releases/latest/download/daisyui.mjs
+curl.exe -sLO https://github.com/saadeghi/daisyui/releases/latest/download/daisyui-theme.mjs
+cd ../..</code></pre>
+    <p class="mt-2 mb-2">Puis dans <code>assets/styles/app.css</code> :</p>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>@import "tailwindcss";
+
+@source not "./daisyui{,*}.mjs";
+@plugin "./daisyui.mjs";</code></pre>
+    <p class="mt-2">La ligne <code>@source not</code> empêche Tailwind de scanner les fichiers de daisyUI eux-mêmes.</p>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="compiler">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>php bin/console tailwind:build --watch</code></pre>
+    <p class="mt-2">À laisser tourner dans un terminal pendant qu'on travaille : il recompile à chaque modification. Sans ça, les nouvelles classes n'apparaissent pas. Sans <code>--watch</code>, un <code>tailwind:build</code> ponctuel après chaque ajout de classe.</p>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="charge">
+{% verbatim %}
+    <ul class="list-disc pl-6 space-y-1">
+        <li><code>assets/app.js</code> contient <code>import './styles/app.css';</code></li>
+        <li><code>base.html.twig</code> contient <code>{{ importmap('app') }}</code></li>
+        <li>Test rapide : un <code>&lt;button class="btn btn-primary"&gt;Test&lt;/button&gt;</code> doit apparaître stylé.</li>
+    </ul>
+{% endverbatim %}
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="themes">
+    <p class="mb-2">daisyUI fournit <code>light</code> et <code>dark</code>. Le thème actif est l'attribut <code>data-theme</code> de la balise <code>&lt;html&gt;</code> :</p>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>&lt;html lang="fr" data-theme="light"&gt;
+
+// changer de thème en JavaScript, et le mémoriser
+document.documentElement.setAttribute('data-theme', 'dark');
+localStorage.setItem('theme', 'dark');</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li>Ce projet : un petit script dans <code>base.html.twig</code> applique le thème mémorisé avant le rendu (pas de flash), et le bouton du header (<code>#theme-toggle</code>) le change.</li>
+        <li>Utiliser les couleurs sémantiques (<code>bg-base-100</code>, <code>text-base-content</code>, <code>btn-primary</code>) et non <code>bg-white</code> : elles suivent le thème.</li>
+        <li>Choisir d'autres thèmes : <code>@plugin "./daisyui.mjs" { themes: light --default, dark --prefersdark, cupcake; }</code>.</li>
+    </ul>
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="formulaires">
+{% verbatim %}
+    <p class="mb-2">Symfony fournit un thème de formulaire daisyUI 5. Dans <code>config/packages/twig.yaml</code> :</p>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>twig:
+    form_themes: ['daisyui_5_layout.html.twig']</code></pre>
+    <p class="mt-3 mb-2">Tailwind ne scanne pas <code>vendor/</code> : lui indiquer le fichier du thème dans <code>app.css</code>, puis recompiler.</p>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>@source "../../vendor/symfony/twig-bridge/Resources/views/Form/daisyui_5_layout.html.twig";</code></pre>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto mt-2"><code>php bin/console cache:clear
+php bin/console tailwind:build</code></pre>
+    <ul class="list-disc pl-6 space-y-1 mt-2">
+        <li>Un seul formulaire : <code>{% form_theme form 'daisyui_5_layout.html.twig' %}</code> en haut du template.</li>
+        <li>Par défaut, le champ n'a pas la pleine largeur : <code>{{ form_row(form.email, {attr: {class: 'input w-full'}}) }}</code>.</li>
+        <li>Détails : cheatsheet « Formulaires ».</li>
+    </ul>
+{% endverbatim %}
+</twig:CheatStep>
+
+<twig:CheatStep :steps="steps" step="prod">
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto"><code>php bin/console tailwind:build --minify
+php bin/console asset-map:compile</code></pre>
+    <p class="mt-2">Dans cet ordre : Tailwind d'abord, puis AssetMapper.</p>
+</twig:CheatStep>
+
+<section class="mb-8">
+    <h2 class="text-xl font-bold mb-2">Classes utiles</h2>
+    <ul class="list-disc pl-6 space-y-1">
+        <li>Espacement : <code>p-4</code>, <code>px-4</code>, <code>py-8</code>, <code>mb-6</code>, <code>gap-4</code></li>
+        <li>Texte : <code>text-xl</code>, <code>text-3xl</code>, <code>font-bold</code></li>
+        <li>Mise en page : <code>flex</code>, <code>grid</code>, <code>mx-auto</code>, <code>max-w-3xl</code></li>
+        <li>Responsive : <code>md:flex</code> (à partir de 768 px), <code>hidden md:flex</code></li>
+        <li>daisyUI : <code>btn</code>, <code>card</code>, <code>navbar</code>, <code>menu</code>, <code>dropdown</code>, <code>hero</code>, <code>tabs</code>, <code>table</code>, <code>alert</code>, <code>badge</code>, <code>input</code>, <code>list</code></li>
+    </ul>
+</section>
+
+<section class="mb-8">
+    <h2 class="text-xl font-bold mb-2">Ou un autre framework CSS ?</h2>
+    <p class="mb-2">Le principe est le même : charger le CSS, puis choisir le <strong>thème de formulaire</strong> qui correspond (un seul framework à la fois).</p>
+    <div class="overflow-x-auto rounded-box border border-base-300">
+        <table class="table">
+            <thead><tr><th>Framework</th><th>Thème de formulaire Symfony</th></tr></thead>
+            <tbody>
+                <tr><td>daisyUI 5</td><td><code>daisyui_5_layout.html.twig</code></td></tr>
+                <tr><td>Tailwind seul</td><td><code>tailwind_2_layout.html.twig</code></td></tr>
+                <tr><td>Bootstrap 5</td><td><code>bootstrap_5_layout.html.twig</code> (ou <code>bootstrap_5_horizontal_layout</code>)</td></tr>
+                <tr><td>Foundation 6</td><td><code>foundation_6_layout.html.twig</code></td></tr>
+                <tr><td>Aucun (par défaut)</td><td><code>form_div_layout.html.twig</code></td></tr>
+            </tbody>
+        </table>
+    </div>
+<pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto mt-3"><code># Bootstrap via AssetMapper
+php bin/console importmap:require bootstrap
+php bin/console importmap:require bootstrap/dist/css/bootstrap.min.css
+# puis dans assets/app.js : import 'bootstrap/dist/css/bootstrap.min.css';</code></pre>
+</section>
+
+<section class="mb-8">
+    <h2 class="text-xl font-bold mb-2">Erreurs fréquentes</h2>
+    <ul class="list-disc pl-6 space-y-1">
+        <li>Une classe n'a aucun effet : <code>tailwind:build</code> n'a pas été relancé.</li>
+        <li><code>badge-{{ '{{ variant }}' }}</code> ne marche pas : Tailwind ne détecte pas les classes construites dynamiquement. Écrire les noms complets dans un tableau de correspondance.</li>
+        <li><code>tabs-lift</code> n'existe pas dans cette version de daisyUI : utiliser <code>tabs-box</code> ou <code>tabs-border</code>.</li>
+        <li>Classes d'un thème de formulaire absentes : il manque la ligne <code>@source</code> vers <code>vendor/</code>.</li>
+        <li>Rien ne s'affiche stylé : vérifier <code>importmap('app')</code> dans <code>base.html.twig</code> et vider le cache.</li>
+    </ul>
+</section>
+{% endblock %}

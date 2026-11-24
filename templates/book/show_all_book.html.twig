@@ -60,7 +60,7 @@
                                class="animate-trip mt-auto inline-block text-center rounded-full bg-gradient-to-r from-pink-500 via-yellow-400 to-cyan-400 py-2 px-6 font-black uppercase tracking-wider text-purple-900 shadow-[0_0_20px_rgba(250,204,21,0.7)] hover:scale-110 hover:rotate-3 transition-transform duration-300">
                                 Détail 👁️
                             </a>
-                            {% if is_granted('ROLE_USER') %}
+                            {% if is_granted('ROLE_ADMIN') %}
                             <a href="{{ path('app_book_edit', {id: book.id}) }}"
                                class="btn btn-ghost btn-sm">Modifier</a>
                         {% endif %}

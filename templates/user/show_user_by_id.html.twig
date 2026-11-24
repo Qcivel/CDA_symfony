@@ -24,7 +24,12 @@
                     <div class="flex items-end gap-4">
                         <div
                             class="-mt-10 flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-blue-600 text-2xl font-semibold text-white ring-4 ring-white">
+                            {% if user.icon %}
+                            <img src="{{ asset('images/' ~ user.icon) }}" alt="Photo de {{ user.firstname }}"
+                                class="h-full w-full object-cover">
+                            {% else %}
                             {{ (user.firstname|default(' ')|first ~ user.lastname|default(' ')|first)|upper }}
+                            {% endif %}
                         </div>
                         <div class="pt-3">
                             <h1 class="text-2xl font-semibold tracking-tight text-slate-900">
@@ -74,8 +79,7 @@
                 </div>
                 {% endif %}
                 {% if is_granted('ROLE_USER') %}
-                    <a href="{{ path('app_user_edit', {id: user.id}) }}"
-                    class="btn btn-ghost btn-sm">Modifier</a>
+                <a href="{{ path('app_user_edit', {id: user.id}) }}" class="btn btn-ghost btn-sm">Modifier</a>
                 {% endif %}
             </div>
         </article>
